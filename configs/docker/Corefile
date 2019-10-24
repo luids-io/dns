@@ -1,0 +1,14 @@
+. {
+    health
+    prometheus :9153
+    idsevent {
+       endpoint {$EVENT_ENDPOINT} 
+    }
+    xlisthole {
+       endpoint {$XLIST_ENDPOINT}
+    }
+    resolvcache {
+       endpoint {$RCACHE_ENDPOINT}
+    }
+    forward . {$FORWARD_DNS}
+}

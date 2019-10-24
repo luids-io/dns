@@ -1,0 +1,7 @@
+{$DOMAIN_RBL} {
+    health
+    prometheus :9153
+    xlistrbl {
+      endpoint {$XLIST_ENDPOINT}
+    }
+}

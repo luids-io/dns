@@ -1,0 +1,72 @@
+# Makefile for release xlistdns
+
+EMPTY:=
+SPACE:=$(EMPTY) $(EMPTY)
+COMMA:=$(EMPTY),$(EMPTY)
+
+ifeq (, $(shell which curl))
+	$(error "No curl in $$PATH, please install")
+endif
+
+
+NAME:=ludns
+COMMANDS=ludns
+VERSION=$(shell git describe --match 'v[0-9]*' --dirty='.m' --always)
+LINUX_ARCH:=amd64 arm arm64 ppc64le s390x
+PLATFORMS:=$(subst $(SPACE),$(COMMA),$(foreach arch,$(LINUX_ARCH),linux/$(arch)))
+
+all:
+	@echo Use the 'release' target to build a release.
+
+release: build tar
+
+.PHONY: build
+build:
+	@echo Cleaning old builds
+	@rm -rf build && mkdir build
+	@echo Building: darwin/amd64 - $(VERSION)
+	mkdir -p build/darwin/amd64
+	for cmd in $(COMMANDS); do \
+		$(MAKE) release COMMAND=$$cmd BINARY=build/darwin/amd64/$${cmd} \
+			SYSTEM="GOOS=darwin GOARCH=amd64" CHECKS="" BUILDOPTS="" ;\
+	done
+	@echo Building: windows/amd64 - $(VERSION)
+	mkdir -p build/windows/amd64
+	for cmd in $(COMMANDS); do \
+		$(MAKE) release COMMAND=$$cmd BINARY=build/windows/amd64/$${cmd}.exe \
+			SYSTEM="GOOS=windows GOARCH=amd64" CHECKS="" BUILDOPTS="" ;\
+	done
+	@echo Building: linux/mips - $(VERSION)
+	mkdir -p build/linux/mips
+	for cmd in $(COMMANDS); do \
+		$(MAKE) release COMMAND=$$cmd BINARY=build/linux/mips/$${cmd} \
+			SYSTEM="GOOS=linux GOARCH=mips" CHECKS="" BUILDOPTS="" ;\
+	done
+	@echo Building: linux/$(LINUX_ARCH) - $(VERSION) ;\
+	for arch in $(LINUX_ARCH); do \
+		mkdir -p build/linux/$$arch ; \
+		for cmd in $(COMMANDS); do \
+		$(MAKE) release COMMAND=$$cmd BINARY=build/linux/$${arch}/$${cmd} \
+			SYSTEM="GOOS=linux GOARCH=$$arch" CHECKS="" BUILDOPTS="" ;\
+		done ; \
+	done
+
+.PHONY: tar
+tar:
+	@echo Cleaning old releases
+	@rm -rf release && mkdir release
+	tar -zcf release/$(NAME)_$(VERSION)_darwin_amd64.tgz -C build/darwin/amd64 .
+	tar -zcf release/$(NAME)_$(VERSION)_windows_amd64.tgz -C build/windows/amd64 .
+	tar -zcf release/$(NAME)_$(VERSION)_linux_mips.tgz -C build/linux/mips .
+	for arch in $(LINUX_ARCH); do \
+		tar -zcf release/$(NAME)_$(VERSION)_linux_$$arch.tgz -C build/linux/$$arch . ;\
+	done
+
+.PHONY: version
+version:
+	@echo $(VERSION)
+
+.PHONY: clean
+clean:
+	rm -rf release
+	rm -rf build

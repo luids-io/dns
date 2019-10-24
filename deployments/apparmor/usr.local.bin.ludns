@@ -1,0 +1,23 @@
+# Last Modified: Fri May 31 14:07:42 2019
+#include <tunables/global>
+
+# vim:syntax=apparmor
+# AppArmor policy for ludns
+# Luis Guillén Civera <luisguillenc@gmail.com>
+# AGPLv3
+# Generic config file for a service
+# No template variables specified
+
+
+/usr/local/bin/ludns {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+
+  unix (receive) type=dgram,
+  unix (receive) type=stream,
+
+  /proc/sys/net/core/somaxconn r,
+
+  # Configuration
+  /etc/ludns/** r,
+}
