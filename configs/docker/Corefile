@@ -7,6 +7,9 @@
     xlisthole {
        endpoint {$XLIST_ENDPOINT}
     }
+    resolvarchive {
+       endpoint {$ARCHIVE_ENDPOINT}
+    }
     resolvcache {
        endpoint {$RCACHE_ENDPOINT}
     }

@@ -1,0 +1,8 @@
+. {
+    health
+    prometheus :9153
+    resolvarchive {
+       endpoint {$ARCHIVE_ENDPOINT}
+    }
+    forward . {$FORWARD_DNS}
+}

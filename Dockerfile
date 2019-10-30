@@ -35,6 +35,7 @@ RUN setcap CAP_NET_BIND_SERVICE=+eip /bin/ludns
 USER coredns
 
 ENV XLIST_ENDPOINT  tcp://xlist:5801
+ENV ARCHIVE_ENDPOINT tcp://resolvcache:5821
 ENV RCACHE_ENDPOINT tcp://resolvcache:5891
 ENV EVENT_ENDPOINT  tcp://event:5851
 

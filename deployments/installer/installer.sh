@@ -229,6 +229,7 @@ create_config() {
     #prometheus :9153
     #idsevent
     #xlisthole
+    #resolvarchive
     #resolvcache
     forward . 8.8.8.8 8.8.4.4
 }
