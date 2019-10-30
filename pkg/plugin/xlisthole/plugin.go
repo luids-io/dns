@@ -21,7 +21,7 @@ import (
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/codes"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/core/xlist/check"
+	"github.com/luids-io/core/xlist/services/check"
 	"github.com/luids-io/core/xlist/reason"
 )
 

@@ -11,14 +11,15 @@ import (
 	"github.com/luisguillenc/yalogi"
 
 	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/event/notify"
+	"github.com/luids-io/core/event/buffer"
+	"github.com/luids-io/core/event/services/notify"
 )
 
 //Plugin is the main struct of the plugin
 type Plugin struct {
 	logger  yalogi.Logger
 	cfg     Config
-	buffer  *event.Buffer
+	buffer  *buffer.Buffer
 	client  *notify.Client
 	started bool
 }
@@ -48,7 +49,7 @@ func (p *Plugin) Start() error {
 	}
 	//create client and buffer for async event writes
 	p.client = notify.NewClient(dial, notify.SetLogger(p.logger))
-	p.buffer = event.NewBuffer(p.client, p.cfg.Buffer, event.SetLogger(p.logger))
+	p.buffer = buffer.New(p.client, p.cfg.Buffer, buffer.SetLogger(p.logger))
 	//register buffer as default event buffer
 	event.SetBuffer(p.buffer)
 	p.started = true

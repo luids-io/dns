@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/dnsutil/resolvarchive"
+	"github.com/luids-io/core/dnsutil/services/resolvarchive"
 )
 
 // Archiver is an archiver with an channel buffer

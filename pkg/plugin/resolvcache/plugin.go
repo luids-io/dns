@@ -19,7 +19,7 @@ import (
 	"github.com/miekg/dns"
 
 	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/dnsutil/resolvcollect"
+	"github.com/luids-io/core/dnsutil/services/resolvcollect"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/codes"
 )

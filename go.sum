@@ -53,6 +53,7 @@ github.com/gofrs/uuid v3.2.0+incompatible h1:y12jRkkFxsd7GpqdSZ+/KCs/fJbqpEXSGd4
 github.com/gofrs/uuid v3.2.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.1/go.mod h1:hp+jE20tsWTFYpLwKvXlhS1hjn+gTNwPg2I6zVXpSg4=
+github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b h1:VKtxabqXZkF25pY9ekfRL6a582T4P37/31XEstQ5p58=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
@@ -117,6 +118,10 @@ github.com/luids-io/core v0.0.0-20191028125450-7534685d50fc h1:DtchZgI/1qhXlsziy
 github.com/luids-io/core v0.0.0-20191028125450-7534685d50fc/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20191030103043-915736ac3eca h1:qHoJzrEjKdsgN6NKSKAgEhpxAX4PP39eZkDVaEhkBPM=
 github.com/luids-io/core v0.0.0-20191030103043-915736ac3eca/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20191030174504-3cab4fe1b5ea h1:bUNV/wlRGGouiI+HCHEsEjYRBhPx7MUENdDwP82yn4Q=
+github.com/luids-io/core v0.0.0-20191030174504-3cab4fe1b5ea/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259 h1:HUnNmtiRi9WoWOrHyBQIMlt96A28u9GGInw2jyWoOY0=
+github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98 h1:2X0TEwBSjZgrA4hWByj4lzmSwQOl62+Vb96rhE4OCuE=
 github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98/go.mod h1:DCmZvYHTbPSM1+69GjLAZUla0/XZnrHxw/bnsvlDqoE=
 github.com/luisguillenc/yalogi v0.0.0-20190329093036-2b8db3a816d3 h1:+2a+SubUAj4WEYM4obFgkKsKRw/Sbq75F6rXr2bp1NI=

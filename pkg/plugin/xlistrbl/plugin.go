@@ -17,7 +17,7 @@ import (
 	"github.com/miekg/dns"
 
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/core/xlist/check"
+	"github.com/luids-io/core/xlist/services/check"
 )
 
 //Plugin is the main struct of the plugin
