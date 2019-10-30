@@ -122,6 +122,8 @@ github.com/luids-io/core v0.0.0-20191030174504-3cab4fe1b5ea h1:bUNV/wlRGGouiI+HC
 github.com/luids-io/core v0.0.0-20191030174504-3cab4fe1b5ea/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259 h1:HUnNmtiRi9WoWOrHyBQIMlt96A28u9GGInw2jyWoOY0=
 github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20191030185348-86eacf71f53f h1:rqhbZaDxQnh7hseQJy3ltn2gxSWJIwbc2PWa/h7BiVg=
+github.com/luids-io/core v0.0.0-20191030185348-86eacf71f53f/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98 h1:2X0TEwBSjZgrA4hWByj4lzmSwQOl62+Vb96rhE4OCuE=
 github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98/go.mod h1:DCmZvYHTbPSM1+69GjLAZUla0/XZnrHxw/bnsvlDqoE=
 github.com/luisguillenc/yalogi v0.0.0-20190329093036-2b8db3a816d3 h1:+2a+SubUAj4WEYM4obFgkKsKRw/Sbq75F6rXr2bp1NI=

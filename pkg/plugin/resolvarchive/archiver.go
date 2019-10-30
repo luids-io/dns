@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/dnsutil/services/resolvarchive"
+	"github.com/luids-io/core/dnsutil/services/archive"
 )
 
 // Archiver is an archiver with an channel buffer
@@ -19,7 +19,7 @@ type Archiver struct {
 	//internal buffered data channel
 	dataCh chan dnsutil.ResolvData
 	//client used for archive
-	client *resolvarchive.Client
+	client *archive.Client
 	//control state
 	closed   bool
 	sigclose chan struct{}
@@ -29,7 +29,7 @@ type Archiver struct {
 func NewArchiver(dial *grpc.ClientConn, bufsize int, logger yalogi.Logger) *Archiver {
 	a := &Archiver{
 		logger:   logger,
-		client:   resolvarchive.NewClient(dial, resolvarchive.SetLogger(logger)),
+		client:   archive.NewClient(dial, archive.SetLogger(logger)),
 		dataCh:   make(chan dnsutil.ResolvData, bufsize),
 		sigclose: make(chan struct{}),
 	}
@@ -65,7 +65,7 @@ func (a *Archiver) Close() error {
 
 func (a *Archiver) doProcess() {
 	for data := range a.dataCh {
-		_, err := a.client.Save(context.Background(), data)
+		_, err := a.client.SaveResolv(context.Background(), data)
 		if err != nil {
 			a.logger.Warnf("%v", err)
 		}
