@@ -3,6 +3,7 @@
 package xlisthole
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -35,6 +36,23 @@ func DefaultConfig() Config {
 	}
 }
 
+// Validate configuration
+func (cfg Config) Validate() error {
+	_, _, err := grpctls.ParseURI(cfg.Endpoint)
+	if err != nil {
+		return fmt.Errorf("invalid endpint: %v", err)
+	}
+	err = cfg.Client.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid client config: %v", err)
+	}
+	err = cfg.Policy.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid policy config: %v", err)
+	}
+	return nil
+}
+
 // Load configuration from controller
 func (cfg *Config) Load(c *caddy.Controller) error {
 	//parse configuration
@@ -59,14 +77,6 @@ func (cfg *Config) Load(c *caddy.Controller) error {
 				}
 			}
 		}
-	}
-	err := cfg.Client.Validate()
-	if err != nil {
-		return c.Errf("invalid client config: %v", err)
-	}
-	err = cfg.Policy.Validate()
-	if err != nil {
-		return c.Errf("invalid policy config: %v", err)
 	}
 	return nil
 }

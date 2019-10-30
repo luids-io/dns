@@ -16,34 +16,35 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	f, err := createXListHole(c)
+	p, err := createPlugin(c)
 	if err != nil {
 		return plugin.Error("xlisthole", err)
 	}
 	c.OnStartup(func() error {
-		f.metrics.register(c)
-		return nil
+		p.RegisterMetrics(c)
+		return p.Start()
 	})
 	c.OnShutdown(func() error {
-		return f.Close()
+		return p.Shutdown()
 	})
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		f.Next = next
-		return f
+		p.Next = next
+		return p
 	})
-
 	return nil
 }
 
-func createXListHole(c *caddy.Controller) (*XListHole, error) {
-	cfg := DefaultConfig()
-	err := cfg.Load(c)
+// creates a plugin from a controller
+func createPlugin(c *caddy.Controller) (*Plugin, error) {
+	config := DefaultConfig()
+	err := config.Load(c)
 	if err != nil {
 		return nil, err
 	}
-	xhole, err := New(cfg)
+	//create archiver plugin
+	p, err := New(config)
 	if err != nil {
 		return nil, c.Err(err.Error())
 	}
-	return xhole, nil
+	return p, nil
 }

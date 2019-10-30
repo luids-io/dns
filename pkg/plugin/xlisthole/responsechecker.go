@@ -16,18 +16,18 @@ import (
 	"github.com/luids-io/core/xlist/reason"
 )
 
-// ResponseChecker implements dns.ResponseWriter, it is used internally by
-// XListHole to check ips returned by other plugins
-type ResponseChecker struct {
+// responseChecker implements dns.ResponseWriter, it is used internally by
+// plugin to check ips returned by other plugins
+type responseChecker struct {
 	dns.ResponseWriter
 	ctx context.Context
 	req *request.Request
-	fw  *XListHole
+	fw  *Plugin
 }
 
 // WriteMsg implements dns.ResponseWriter interface. In this method, the returned IP
 // validation is done.
-func (r *ResponseChecker) WriteMsg(q *dns.Msg) error {
+func (r *responseChecker) WriteMsg(q *dns.Msg) error {
 	if q.Rcode != dns.RcodeSuccess || len(q.Answer) == 0 {
 		return r.ResponseWriter.WriteMsg(q)
 	}
@@ -63,7 +63,7 @@ func (r *ResponseChecker) WriteMsg(q *dns.Msg) error {
 }
 
 // prepare parallel queries from an answer
-func (r *ResponseChecker) prepareQueries(answer []dns.RR) []parallel.Request {
+func (r *responseChecker) prepareQueries(answer []dns.RR) []parallel.Request {
 	queries := make([]parallel.Request, 0, len(answer))
 	for _, a := range answer {
 		//check ip4 returned
@@ -84,7 +84,7 @@ func (r *ResponseChecker) prepareQueries(answer []dns.RR) []parallel.Request {
 	return queries
 }
 
-func (r *ResponseChecker) processResponses(responses []parallel.Response) (ActionInfo, int, error) {
+func (r *responseChecker) processResponses(responses []parallel.Response) (ActionInfo, int, error) {
 	// default rule
 	applyRule := r.fw.policy.IP.Unlisted
 	applyTTL := 0
@@ -128,7 +128,7 @@ func (r *ResponseChecker) processResponses(responses []parallel.Response) (Actio
 	return applyRule.Action, applyTTL, nil
 }
 
-func (r *ResponseChecker) dispatchAction(q *dns.Msg, a ActionInfo, ttl int) error {
+func (r *responseChecker) dispatchAction(q *dns.Msg, a ActionInfo, ttl int) error {
 	// dispatch final computed action
 	switch a.Type {
 	case SendNXDomain:
