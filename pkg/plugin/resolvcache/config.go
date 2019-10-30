@@ -3,6 +3,7 @@
 package resolvcache
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/caddyserver/caddy"
@@ -14,7 +15,6 @@ import (
 type Config struct {
 	Endpoint string
 	Client   grpctls.ClientCfg
-	Buffer   int
 	Policy   RuleSet
 }
 
@@ -22,12 +22,24 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Endpoint: "tcp://127.0.0.1:5891",
-		Buffer:   100,
 		Policy: RuleSet{
 			MaxClientRequests: Rule{Log: true},
 			MaxNamesResolved:  Rule{Log: true},
 		},
 	}
+}
+
+// Validate configuration
+func (cfg Config) Validate() error {
+	_, _, err := grpctls.ParseURI(cfg.Endpoint)
+	if err != nil {
+		return fmt.Errorf("invalid endpint: %v", err)
+	}
+	err = cfg.Client.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid client config: %v", err)
+	}
+	return nil
 }
 
 // Load configuration from controller
@@ -54,10 +66,6 @@ func (cfg *Config) Load(c *caddy.Controller) error {
 				}
 			}
 		}
-	}
-	err := cfg.Client.Validate()
-	if err != nil {
-		return c.Errf("invalid client config: %v", err)
 	}
 	return nil
 }

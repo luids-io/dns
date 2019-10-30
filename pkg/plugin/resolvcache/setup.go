@@ -16,33 +16,35 @@ func init() {
 	})
 }
 
-// setup function creates a new instance and register to controller
 func setup(c *caddy.Controller) error {
-	col, err := createCollector(c)
+	p, err := createPlugin(c)
 	if err != nil {
 		return plugin.Error("resolvcache", err)
 	}
+	c.OnStartup(func() error {
+		return p.Start()
+	})
 	c.OnShutdown(func() error {
-		col.Close()
-		return nil
+		return p.Shutdown()
 	})
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		col.Next = next
-		return col
+		p.Next = next
+		return p
 	})
 	return nil
 }
 
-// creates a collector from a controller
-func createCollector(c *caddy.Controller) (*Collector, error) {
+// creates a plugin from a controller
+func createPlugin(c *caddy.Controller) (*Plugin, error) {
 	config := DefaultConfig()
 	err := config.Load(c)
 	if err != nil {
 		return nil, err
 	}
-	col, err := New(config)
+	//create archiver plugin
+	p, err := New(config)
 	if err != nil {
 		return nil, c.Err(err.Error())
 	}
-	return col, nil
+	return p, nil
 }
