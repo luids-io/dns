@@ -16,29 +16,34 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	rbl, err := createRBL(c)
+	p, err := createPlugin(c)
 	if err != nil {
 		return plugin.Error("xlistrbl", err)
 	}
+	c.OnStartup(func() error {
+		return p.Start()
+	})
 	c.OnShutdown(func() error {
-		return rbl.Close()
+		return p.Shutdown()
 	})
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		rbl.Next = next
-		return rbl
+		p.Next = next
+		return p
 	})
 	return nil
 }
 
-func createRBL(c *caddy.Controller) (*XListRBL, error) {
-	cfg := DefaultConfig()
-	err := cfg.Load(c)
+// creates a plugin from a controller
+func createPlugin(c *caddy.Controller) (*Plugin, error) {
+	config := DefaultConfig()
+	err := config.Load(c)
 	if err != nil {
 		return nil, err
 	}
-	rbl, err := New(cfg)
+	//create archiver plugin
+	p, err := New(config)
 	if err != nil {
 		return nil, c.Err(err.Error())
 	}
-	return rbl, nil
+	return p, nil
 }

@@ -3,6 +3,9 @@
 package xlistrbl
 
 import (
+	"errors"
+	"fmt"
+	"net"
 	"strconv"
 	"strings"
 
@@ -27,6 +30,23 @@ func DefaultConfig() Config {
 		ReturnIP: "127.0.0.69",
 		Zones:    make([]string, 0),
 	}
+}
+
+// Validate configuration
+func (cfg Config) Validate() error {
+	_, _, err := grpctls.ParseURI(cfg.Endpoint)
+	if err != nil {
+		return fmt.Errorf("invalid endpint: %v", err)
+	}
+	err = cfg.Client.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid client config: %v", err)
+	}
+	ip := net.ParseIP(cfg.ReturnIP)
+	if ip == nil {
+		return errors.New("invalid returnip")
+	}
+	return nil
 }
 
 // Load configuration from controller
@@ -63,10 +83,6 @@ func (cfg *Config) Load(c *caddy.Controller) error {
 				}
 			}
 		}
-	}
-	err := cfg.Client.Validate()
-	if err != nil {
-		return c.Errf("invalid client config: %v", err)
 	}
 	return nil
 }
