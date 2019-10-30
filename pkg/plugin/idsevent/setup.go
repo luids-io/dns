@@ -3,52 +3,43 @@
 package idsevent
 
 import (
-	"fmt"
-
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/plugin"
-	"github.com/luisguillenc/grpctls"
-
-	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/event/notify"
 )
 
 func init() {
-	caddy.RegisterPlugin("dnsevent", caddy.Plugin{
+	caddy.RegisterPlugin("idsevent", caddy.Plugin{
 		ServerType: "dns",
 		Action:     setup,
 	})
 }
 
+// setup function creates a new instance and register to controller
 func setup(c *caddy.Controller) error {
-	cfg := DefaultConfig()
-	err := cfg.Load(c)
+	p, err := createPlugin(c)
 	if err != nil {
-		return err
+		return plugin.Error("idsevent", err)
 	}
-	//creates event notifier
-	notifier, err := newNotifier(cfg)
-	if err != nil {
-		return plugin.Error("dnsevent", c.Err(err.Error()))
-	}
-	//creates event buffer and uses as default
-	buffer := event.NewBuffer(notifier, cfg.Buffer, event.SetLogger(log))
-	event.SetBuffer(buffer)
-
-	//register shutdown
+	c.OnStartup(func() error {
+		return p.Start()
+	})
 	c.OnShutdown(func() error {
-		buffer.Close()
-		return notifier.Close()
+		return p.Shutdown()
 	})
 	return nil
 }
 
-func newNotifier(cfg Config) (*notify.Client, error) {
-	// dial grpc connection
-	dial, err := grpctls.Dial(cfg.Endpoint, cfg.Client)
+// creates a plugin from a controller
+func createPlugin(c *caddy.Controller) (*Plugin, error) {
+	config := DefaultConfig()
+	err := config.Load(c)
 	if err != nil {
-		return nil, fmt.Errorf("cannot dial with %s: %v", cfg.Endpoint, err)
+		return nil, err
 	}
-	// create client
-	return notify.NewClient(dial, notify.SetLogger(log)), nil
+	//create archiver plugin
+	p, err := New(config)
+	if err != nil {
+		return nil, c.Err(err.Error())
+	}
+	return p, nil
 }

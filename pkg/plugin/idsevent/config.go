@@ -3,6 +3,7 @@
 package idsevent
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/caddyserver/caddy"
@@ -23,6 +24,22 @@ func DefaultConfig() Config {
 		Endpoint: "tcp://127.0.0.1:5851",
 		Buffer:   100,
 	}
+}
+
+// Validate configuration
+func (cfg Config) Validate() error {
+	_, _, err := grpctls.ParseURI(cfg.Endpoint)
+	if err != nil {
+		return fmt.Errorf("invalid endpint: %v", err)
+	}
+	err = cfg.Client.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid client config: %v", err)
+	}
+	if cfg.Buffer < 1 {
+		return fmt.Errorf("invalid buffer value: %v", cfg.Buffer)
+	}
+	return nil
 }
 
 // Load configuration from controller
@@ -49,10 +66,6 @@ func (cfg *Config) Load(c *caddy.Controller) error {
 				}
 			}
 		}
-	}
-	err := cfg.Client.Validate()
-	if err != nil {
-		return c.Errf("invalid client config: %v", err)
 	}
 	return nil
 }
