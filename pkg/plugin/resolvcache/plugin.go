@@ -18,8 +18,8 @@ import (
 	"github.com/luisguillenc/yalogi"
 	"github.com/miekg/dns"
 
+	"github.com/luids-io/api/dnsutil/resolvcollect"
 	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/dnsutil/services/resolvcollect"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/codes"
 )

@@ -12,7 +12,7 @@ import (
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/codes"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/core/xlist/services/check/parallel"
+	"github.com/luids-io/core/xlist/parallel"
 	"github.com/luids-io/core/xlist/reason"
 )
 

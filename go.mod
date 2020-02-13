@@ -6,7 +6,8 @@ require (
 	github.com/caddyserver/caddy v1.0.1
 	github.com/coredns/coredns v1.5.2
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
-	github.com/luids-io/core v0.0.0-20191121175900-484df933d773
+	github.com/luids-io/api v0.0.0-20200212133704-bd7b9929bab6
+	github.com/luids-io/core v0.0.0-20200212133836-591349240d3f
 	github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98
 	github.com/luisguillenc/yalogi v0.0.0-20190329093036-2b8db3a816d3
 	github.com/miekg/dns v1.1.14

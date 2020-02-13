@@ -18,10 +18,10 @@ import (
 	"github.com/luisguillenc/yalogi"
 	"github.com/miekg/dns"
 
+	"github.com/luids-io/api/xlist/check"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/codes"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/core/xlist/services/check"
 	"github.com/luids-io/core/xlist/reason"
 )
 

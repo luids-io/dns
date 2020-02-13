@@ -10,9 +10,9 @@ import (
 	"github.com/luisguillenc/grpctls"
 	"github.com/luisguillenc/yalogi"
 
+	"github.com/luids-io/api/event/notify"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/buffer"
-	"github.com/luids-io/core/event/services/notify"
 )
 
 //Plugin is the main struct of the plugin

@@ -9,8 +9,8 @@ import (
 	"github.com/luisguillenc/yalogi"
 	"google.golang.org/grpc"
 
+	"github.com/luids-io/api/dnsutil/archive"
 	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/dnsutil/services/archive"
 )
 
 // Archiver is an archiver with an channel buffer
