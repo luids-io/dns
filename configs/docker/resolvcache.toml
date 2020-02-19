@@ -1,0 +1,13 @@
+[cache]
+dumplog  = "/var/lib/ludns/cache-dump.log"
+dumpsecs = 60
+expire   = 7200
+
+[grpc-check]
+listenuri = "tcp://0.0.0.0:5892"
+
+[grpc-collect]
+listenuri = "tcp://0.0.0.0:5891"
+
+[collectlog]
+file      = "/var/lib/ludns/cache-collect.log"

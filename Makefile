@@ -1,7 +1,7 @@
-# Makefile for building ludns
+# Makefile for building dns
 
 # Project binaries
-COMMANDS=ludns
+COMMANDS=ludns resolvcache resolvcheck resolvcollect
 BINARIES=$(addprefix bin/,$(COMMANDS))
 
 # Used to populate version in binaries

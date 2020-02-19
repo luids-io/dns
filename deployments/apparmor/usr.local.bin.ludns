@@ -19,5 +19,5 @@
   /proc/sys/net/core/somaxconn r,
 
   # Configuration
-  /etc/ludns/** r,
+  /etc/luids/dns/** r,
 }

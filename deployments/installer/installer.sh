@@ -17,7 +17,7 @@ SVC_USER=lu${NAME}
 SVC_GROUP=luids
 
 ## Binaries
-BINARIES="ludns"
+BINARIES="ludns resolvcache resolvcheck resolvcollect"
 
 ## Download
 DOWNLOAD_BASE="https://github.com/luids-io/${NAME}/releases/download"
@@ -378,14 +378,32 @@ EOF
 		log "$ETC_DIR/$NAME/Corefile already exists"
 	fi
 
+	## create files
+	if [ ! -f $ETC_DIR/$NAME/resolvcache.toml ]; then
+		log "creating $ETC_DIR/$NAME/resolvcache.toml"
+		{ cat > $ETC_DIR/$NAME/resolvcache.toml <<EOF
+[cache]
+expire   = 7200
+dumplog  = "${VAR_DIR}/${NAME}/dump.log"
+dumpsecs = 60
+
+[collectlog]
+file      = "${VAR_DIR}/${NAME}/collect.log"
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$ETC_DIR/$NAME/resolvcache.toml already exists"
+	fi
+
 	step_ok
 }
 
 install_systemd_services() {
 	step "Installing systemd services"
-	if [ ! -f $SYSTEMD_DIR/luids-dns.service ]; then
-		log "creating $SYSTEMD_DIR/luids-dns.service"
-		{ cat > $SYSTEMD_DIR/luids-dns.service <<EOF
+	if [ ! -f $SYSTEMD_DIR/luids-ludns.service ]; then
+		log "creating $SYSTEMD_DIR/luids-ludns.service"
+		{ cat > $SYSTEMD_DIR/luids-ludns.service <<EOF
 [Unit]
 Description=ludns service
 After=network.target
@@ -404,7 +422,55 @@ EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
-		log "$SYSTEMD_DIR/luids-dns.service already exists"
+		log "$SYSTEMD_DIR/luids-ludns.service already exists"
+	fi
+
+	if [ ! -f $SYSTEMD_DIR/luids-resolvcache.service ]; then
+		log "creating $SYSTEMD_DIR/luids-resolvcache.service"
+		{ cat > $SYSTEMD_DIR/luids-resolvcache.service <<EOF
+[Unit]
+Description=resolvcache service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=1
+User=$SVC_USER
+ExecStart=$BIN_DIR/resolvcache --config $ETC_DIR/$NAME/resolvcache.toml
+
+[Install]
+WantedBy=multi-user.target
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$SYSTEMD_DIR/luids-resolvcache.service already exists"
+	fi
+
+	if [ ! -f $SYSTEMD_DIR/luids-resolvcache@.service ]; then
+		log "creating $SYSTEMD_DIR/luids-resolvcache@.service"
+		{ cat > $SYSTEMD_DIR/luids-resolvcache@.service <<EOF
+[Unit]
+Description=resolvcache service per-config file
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=1
+User=$SVC_USER
+ExecStart=$BIN_DIR/resolvcache --config $ETC_DIR/$NAME/%i.toml
+
+[Install]
+WantedBy=multi-user.target
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$SYSTEMD_DIR/luids-resolvcache@.service already exists"
 	fi
 
 	step_ok
