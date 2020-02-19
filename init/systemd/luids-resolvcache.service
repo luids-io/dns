@@ -7,8 +7,8 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=on-failure
 RestartSec=1
-User=luresolv
-ExecStart=/usr/local/bin/resolvcache --config /etc/luids/resolv/resolvcache.toml
+User=ludns
+ExecStart=/usr/local/bin/resolvcache --config /etc/luids/dns/resolvcache.toml
 
 [Install]
 WantedBy=multi-user.target
