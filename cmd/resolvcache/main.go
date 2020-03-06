@@ -72,40 +72,46 @@ func main() {
 	}
 
 	// creates main server manager instance
-	srv := serverd.New(serverd.SetLogger(logger))
+	msrv := serverd.New(serverd.SetLogger(logger))
 
 	// create collect logger
-	clogger, err := createCollectLogger(srv, logger)
+	clogger, err := createCollectLogger(msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating resolv cache: %v", err)
 	}
-
 	// create resolv cache
-	cache, err := createResolvCache(clogger, srv, logger)
+	cache, err := createResolvCache(clogger, msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating resolv cache: %v", err)
 	}
 
 	// create collector server
-	err = createCollectSrv(cache, srv)
+	cgsrv, err := createCollectSrv(msrv)
 	if err != nil {
-		logger.Fatalf("creating collect grpc server: %v", err)
+		logger.Fatalf("creating collect server: %v", err)
 	}
-
-	// create checker server
-	err = createCheckSrv(srv, cache)
+	err = createCollectAPI(cgsrv, cache, logger)
 	if err != nil {
-		logger.Fatalf("creating finder grpc server: %v", err)
+		logger.Fatalf("creating collect api: %v", err)
+	}
+	// create checker server
+	fgsrv, err := createCheckSrv(msrv)
+	if err != nil {
+		logger.Fatalf("creating check server: %v", err)
+	}
+	err = createCheckAPI(fgsrv, cache, logger)
+	if err != nil {
+		logger.Fatalf("creating check api: %v", err)
 	}
 
 	// creates health server
-	err = createHealthSrv(srv, logger)
+	err = createHealthSrv(msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating health server: %v", err)
 	}
 
 	// run server
-	err = srv.Run()
+	err = msrv.Run()
 	if err != nil {
 		logger.Errorf("running server: %v", err)
 	}

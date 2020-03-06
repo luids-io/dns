@@ -1,13 +1,13 @@
-[cache]
-dumplog  = "/var/lib/ludns/cache-dump.log"
+[resolvcache]
+dumplog  = "/var/cache/luids/dns/cache-dump.log"
 dumpsecs = 60
 expire   = 7200
 
-[grpc-check]
+[collectlog]
+file      = "/var/lib/luids/dns/cache-collect.log"
+
+[server-check]
 listenuri = "tcp://0.0.0.0:5892"
 
-[grpc-collect]
+[server-collect]
 listenuri = "tcp://0.0.0.0:5891"
-
-[collectlog]
-file      = "/var/lib/ludns/cache-collect.log"

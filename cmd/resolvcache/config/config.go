@@ -14,7 +14,7 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
-			Name:     "cache",
+			Name:     "resolvcache",
 			Required: true,
 			Data: &iconfig.ResolvCacheCfg{
 				DumpSecs:   60,
@@ -28,14 +28,14 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.CollectLogCfg{},
 		},
 		goconfig.Section{
-			Name:     "grpc-collect",
+			Name:     "server-collect",
 			Required: true,
 			Data: &cconfig.ServerCfg{
 				ListenURI: "tcp://127.0.0.1:5891",
 			},
 		},
 		goconfig.Section{
-			Name:     "grpc-check",
+			Name:     "server-check",
 			Required: true,
 			Data: &cconfig.ServerCfg{
 				ListenURI: "tcp://127.0.0.1:5892",

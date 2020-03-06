@@ -3,12 +3,15 @@
 package main
 
 import (
+	"fmt"
+
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/luisguillenc/serverd"
 	"github.com/luisguillenc/yalogi"
+	"google.golang.org/grpc"
 
-	"github.com/luids-io/api/dnsutil/resolvcheck"
-	"github.com/luids-io/api/dnsutil/resolvcollect"
+	apicheck "github.com/luids-io/api/dnsutil/resolvcheck"
+	apicollect "github.com/luids-io/api/dnsutil/resolvcollect"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
 	iconfig "github.com/luids-io/dns/internal/config"
@@ -20,77 +23,6 @@ import (
 func createLogger(debug bool) (yalogi.Logger, error) {
 	cfgLog := cfg.Data("log").(*cconfig.LoggerCfg)
 	return cfactory.Logger(cfgLog, debug)
-}
-
-func createCollectLogger(srv *serverd.Manager, logger yalogi.Logger) (resolvcache.CollectLogger, error) {
-	cfgCollectLog := cfg.Data("collectlog").(*iconfig.CollectLogCfg)
-	//creates collection logger if defined
-	var clogger resolvcache.CollectLogger
-	if cfgCollectLog.File != "" {
-		cfile := collectfile.New(cfgCollectLog.File)
-		srv.Register(serverd.Service{
-			Name:     "collectlog.service",
-			Start:    cfile.Start,
-			Shutdown: cfile.Stop,
-		})
-		clogger = cfile
-	}
-	return clogger, nil
-}
-
-func createResolvCache(clogger resolvcache.CollectLogger, srv *serverd.Manager, logger yalogi.Logger) (*resolvcache.Service, error) {
-	cfgRCache := cfg.Data("cache").(*iconfig.ResolvCacheCfg)
-	//creates resolv cache
-	cache, err := ifactory.ResolvCache(cfgRCache, clogger, logger)
-	if err != nil {
-		return nil, err
-	}
-	srv.Register(serverd.Service{
-		Name:     "resolvcache.service",
-		Start:    cache.Start,
-		Shutdown: cache.Shutdown,
-	})
-	return cache, nil
-}
-
-func createCollectSrv(cache *resolvcache.Service, srv *serverd.Manager) error {
-	cfgCollect := cfg.Data("grpc-collect").(*cconfig.ServerCfg)
-	cglis, cgsrv, err := cfactory.Server(cfgCollect)
-	if err != nil {
-		return err
-	}
-	// register service
-	resolvcollect.RegisterServer(cgsrv, resolvcollect.NewService(cache))
-	if cfgCollect.Metrics {
-		grpc_prometheus.Register(cgsrv)
-	}
-	srv.Register(serverd.Service{
-		Name:     "grpc-collect.server",
-		Start:    func() error { go cgsrv.Serve(cglis); return nil },
-		Shutdown: cgsrv.GracefulStop,
-		Stop:     cgsrv.Stop,
-	})
-	return nil
-}
-
-func createCheckSrv(srv *serverd.Manager, resolvCache *resolvcache.Service) error {
-	cfgCheck := cfg.Data("grpc-check").(*cconfig.ServerCfg)
-	fglis, fgsrv, err := cfactory.Server(cfgCheck)
-	if err != nil {
-		return err
-	}
-	// register service
-	resolvcheck.RegisterServer(fgsrv, resolvcheck.NewService(resolvCache))
-	if cfgCheck.Metrics {
-		grpc_prometheus.Register(fgsrv)
-	}
-	srv.Register(serverd.Service{
-		Name:     "grpc-check.server",
-		Start:    func() error { go fgsrv.Serve(fglis); return nil },
-		Shutdown: fgsrv.GracefulStop,
-		Stop:     fgsrv.Stop,
-	})
-	return nil
 }
 
 func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
@@ -107,4 +39,88 @@ func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
 		})
 	}
 	return nil
+}
+
+func createCollectLogger(msrv *serverd.Manager, logger yalogi.Logger) (resolvcache.CollectLogger, error) {
+	cfgCollectLog := cfg.Data("collectlog").(*iconfig.CollectLogCfg)
+	//creates collection logger if defined
+	var clogger resolvcache.CollectLogger
+	if cfgCollectLog.File != "" {
+		cfile := collectfile.New(cfgCollectLog.File)
+		msrv.Register(serverd.Service{
+			Name:     "collectlog.service",
+			Start:    cfile.Start,
+			Shutdown: cfile.Stop,
+		})
+		clogger = cfile
+	}
+	return clogger, nil
+}
+
+func createResolvCache(clogger resolvcache.CollectLogger, msrv *serverd.Manager, logger yalogi.Logger) (*resolvcache.Service, error) {
+	cfgRCache := cfg.Data("resolvcache").(*iconfig.ResolvCacheCfg)
+	cache, err := ifactory.ResolvCache(cfgRCache, clogger, logger)
+	if err != nil {
+		return nil, err
+	}
+	msrv.Register(serverd.Service{
+		Name:     "resolvcache.service",
+		Start:    cache.Start,
+		Shutdown: cache.Shutdown,
+	})
+	return cache, nil
+}
+
+func createCollectAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.Logger) error {
+	gsvc, err := ifactory.ResolvCollectAPI(csvc, logger)
+	if err != nil {
+		return fmt.Errorf("creating collectapi service: %v", err)
+	}
+	apicollect.RegisterServer(gsrv, gsvc)
+	return nil
+}
+
+func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
+	cfgServer := cfg.Data("server-collect").(*cconfig.ServerCfg)
+	glis, gsrv, err := cfactory.Server(cfgServer)
+	if err != nil {
+		return nil, err
+	}
+	if cfgServer.Metrics {
+		grpc_prometheus.Register(gsrv)
+	}
+	msrv.Register(serverd.Service{
+		Name:     "resolvcache-collect.server",
+		Start:    func() error { go gsrv.Serve(glis); return nil },
+		Shutdown: gsrv.GracefulStop,
+		Stop:     gsrv.Stop,
+	})
+	return gsrv, nil
+}
+
+func createCheckAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.Logger) error {
+	gsvc, err := ifactory.ResolvCheckAPI(csvc, logger)
+	if err != nil {
+		return fmt.Errorf("creating checkapi service: %v", err)
+	}
+	apicheck.RegisterServer(gsrv, gsvc)
+	return nil
+}
+
+func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
+	cfgServer := cfg.Data("server-check").(*cconfig.ServerCfg)
+	glis, gsrv, err := cfactory.Server(cfgServer)
+	if err != nil {
+		return nil, err
+	}
+	if cfgServer.Metrics {
+		grpc_prometheus.Register(gsrv)
+	}
+	msrv.Register(serverd.Service{
+		Name:     "resolvcache-check.server",
+		Start:    func() error { go gsrv.Serve(glis); return nil },
+		Shutdown: gsrv.GracefulStop,
+		Stop:     gsrv.Stop,
+	})
+	return gsrv, nil
 }

@@ -382,7 +382,7 @@ EOF
 	if [ ! -f $ETC_DIR/$NAME/resolvcache.toml ]; then
 		log "creating $ETC_DIR/$NAME/resolvcache.toml"
 		{ cat > $ETC_DIR/$NAME/resolvcache.toml <<EOF
-[cache]
+[resolvcache]
 expire   = 7200
 dumplog  = "${CACHE_DIR}/${NAME}/dump.log"
 dumpsecs = 60
