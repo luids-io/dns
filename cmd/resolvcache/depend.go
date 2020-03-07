@@ -3,8 +3,6 @@
 package main
 
 import (
-	"fmt"
-
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/luisguillenc/serverd"
 	"github.com/luisguillenc/yalogi"
@@ -25,14 +23,14 @@ func createLogger(debug bool) (yalogi.Logger, error) {
 	return cfactory.Logger(cfgLog, debug)
 }
 
-func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
+func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 	cfgHealth := cfg.Data("health").(*cconfig.HealthCfg)
 	if !cfgHealth.Empty() {
-		hlis, health, err := cfactory.Health(cfgHealth, srv, logger)
+		hlis, health, err := cfactory.Health(cfgHealth, msrv, logger)
 		if err != nil {
 			logger.Fatalf("creating health server: %v", err)
 		}
-		srv.Register(serverd.Service{
+		msrv.Register(serverd.Service{
 			Name:     "health.server",
 			Start:    func() error { go health.Serve(hlis); return nil },
 			Shutdown: func() { health.Close() },
@@ -74,7 +72,7 @@ func createResolvCache(clogger resolvcache.CollectLogger, msrv *serverd.Manager,
 func createCollectAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.Logger) error {
 	gsvc, err := ifactory.ResolvCollectAPI(csvc, logger)
 	if err != nil {
-		return fmt.Errorf("creating collectapi service: %v", err)
+		return err
 	}
 	apicollect.RegisterServer(gsrv, gsvc)
 	return nil
@@ -101,7 +99,7 @@ func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 func createCheckAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.Logger) error {
 	gsvc, err := ifactory.ResolvCheckAPI(csvc, logger)
 	if err != nil {
-		return fmt.Errorf("creating checkapi service: %v", err)
+		return err
 	}
 	apicheck.RegisterServer(gsrv, gsvc)
 	return nil
