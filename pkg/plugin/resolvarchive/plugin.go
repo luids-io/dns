@@ -65,56 +65,44 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	if !p.started {
 		return dns.RcodeServerFailure, errors.New("plugin not started")
 	}
+	// only if A or AAAA then archive response
 	req := request.Request{W: writer, Req: query}
 	if req.QType() != dns.TypeA && req.QType() != dns.TypeAAAA {
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
 	}
-	// if A or AAAA gets response
+	// fill data with query
+	data := dnsutil.ResolvData{
+		Timestamp:        time.Now(),
+		Server:           net.ParseIP(req.LocalIP()),
+		Client:           net.ParseIP(req.IP()),
+		QID:              query.Id,
+		Name:             strings.TrimSuffix(req.Name(), "."),
+		CheckingDisabled: query.CheckingDisabled,
+	}
+	// do resolv in next plugin
 	rrw := dnstest.NewRecorder(writer)
 	rc, err := plugin.NextOrFailure(p.Name(), p.Next, ctx, rrw, query)
-	if rc != dns.RcodeSuccess || err != nil {
+	if err != nil {
 		return rc, err
 	}
-	// gets IPs from answer
-	var resolved []net.IP
-	if rrw.Msg != nil && len(rrw.Msg.Answer) > 0 {
-		resolved = make([]net.IP, 0, len(rrw.Msg.Answer))
-		for _, a := range rrw.Msg.Answer {
-			if rsp, ok := a.(*dns.A); ok {
-				resolved = append(resolved, rsp.A)
-			} else if rsp, ok := a.(*dns.AAAA); ok {
-				resolved = append(resolved, rsp.AAAA)
+	// fill data with response
+	data.Duration = time.Since(data.Timestamp)
+	data.ReturnCode = rc
+	if rrw.Msg != nil {
+		data.ReturnCode = rrw.Msg.Rcode
+		data.AuthenticatedData = rrw.Msg.AuthenticatedData
+		if len(rrw.Msg.Answer) > 0 {
+			data.Resolved = make([]net.IP, 0, len(rrw.Msg.Answer))
+			for _, a := range rrw.Msg.Answer {
+				if rsp, ok := a.(*dns.A); ok {
+					data.Resolved = append(data.Resolved, rsp.A)
+				} else if rsp, ok := a.(*dns.AAAA); ok {
+					data.Resolved = append(data.Resolved, rsp.AAAA)
+				}
 			}
 		}
 	}
-	if len(resolved) > 0 {
-		// prepare data
-		name := req.Name()
-		if dns.IsFqdn(name) {
-			name = strings.TrimSuffix(name, ".")
-		}
-		local := req.LocalIP()
-		server := net.ParseIP(local)
-		if server == nil {
-			p.logger.Warnf("parsing local '%s'", local)
-			return rc, err
-		}
-		remote, _, _ := net.SplitHostPort(req.RemoteAddr())
-		client := net.ParseIP(remote)
-		if client == nil {
-			p.logger.Warnf("parsing remote '%s'", req.RemoteAddr())
-			return rc, err
-		}
-		// save data
-		data := dnsutil.ResolvData{
-			Timestamp: time.Now(),
-			Server:    server,
-			Client:    client,
-			Name:      name,
-			Resolved:  resolved,
-		}
-		p.archiver.SaveResolv(data)
-	}
+	p.archiver.SaveResolv(data)
 	return rc, err
 }
 
@@ -126,8 +114,7 @@ func (p Plugin) Health() bool {
 	if !p.started {
 		return false
 	}
-	err := p.archiver.Ping()
-	return err == nil
+	return p.archiver.Ping() == nil
 }
 
 // Shutdown plugin
