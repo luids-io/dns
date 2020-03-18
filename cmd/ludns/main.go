@@ -11,6 +11,7 @@ import (
 	_ "github.com/coredns/coredns/plugin/metrics"
 	_ "github.com/coredns/coredns/plugin/whoami"
 	_ "github.com/luids-io/dns/pkg/plugin/idsevent"
+	_ "github.com/luids-io/dns/pkg/plugin/luidsapi"
 	_ "github.com/luids-io/dns/pkg/plugin/resolvarchive"
 	_ "github.com/luids-io/dns/pkg/plugin/resolvcache"
 	_ "github.com/luids-io/dns/pkg/plugin/xlisthole"
@@ -18,6 +19,7 @@ import (
 )
 
 var directives = []string{
+	"luidsapi",
 	"idsevent",
 	"xlistrbl",
 	"xlisthole",
