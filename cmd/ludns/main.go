@@ -18,6 +18,7 @@ import (
 	_ "github.com/luids-io/dns/pkg/plugin/xlistrbl"
 
 	//luids api services
+	_ "github.com/luids-io/api/dnsutil/resolvcollect"
 	_ "github.com/luids-io/api/event/notify"
 )
 

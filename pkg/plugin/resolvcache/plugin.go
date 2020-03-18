@@ -14,14 +14,14 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/fall"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
-	"github.com/luisguillenc/grpctls"
 	"github.com/luisguillenc/yalogi"
 	"github.com/miekg/dns"
 
-	"github.com/luids-io/api/dnsutil/resolvcollect"
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/dnsutil"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/codes"
+	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 
 // Plugin is the main struct of the plugin
@@ -29,11 +29,12 @@ type Plugin struct {
 	Next plugin.Handler
 	Fall fall.F
 	//internal variables
-	logger  yalogi.Logger
-	cfg     Config
-	policy  RuleSet
-	client  *resolvcollect.Client
-	started bool
+	logger    yalogi.Logger
+	cfg       Config
+	policy    RuleSet
+	svc       apiservice.Service
+	collector dnsutil.ResolvCollector
+	started   bool
 }
 
 // New returns a new Plugin
@@ -52,11 +53,15 @@ func New(cfg Config) (*Plugin, error) {
 
 // Start plugin
 func (p *Plugin) Start() error {
-	dial, err := grpctls.Dial(p.cfg.Endpoint, p.cfg.Client)
-	if err != nil {
-		return fmt.Errorf("cannot dial with %s: %v", p.cfg.Endpoint, err)
+	var ok bool
+	p.svc, ok = luidsapi.GetService(p.cfg.Service)
+	if !ok {
+		return fmt.Errorf("cannot find service '%s'", p.cfg.Service)
 	}
-	p.client = resolvcollect.NewClient(dial, resolvcollect.SetLogger(p.logger))
+	p.collector, ok = p.svc.(dnsutil.ResolvCollector)
+	if !ok {
+		return fmt.Errorf("service '%s' is not an dnsutil resolvcollect api", p.cfg.Service)
+	}
 	p.started = true
 	return nil
 }
@@ -69,8 +74,7 @@ func (p Plugin) Health() bool {
 	if !p.started {
 		return false
 	}
-	err := p.client.Ping()
-	return err == nil
+	return p.svc.Ping() == nil
 }
 
 // Shutdown plugin
@@ -79,7 +83,7 @@ func (p *Plugin) Shutdown() error {
 		return nil
 	}
 	p.started = false
-	return p.client.Close()
+	return nil
 }
 
 // ServeDNS implements the plugin.Handle interface.
@@ -128,7 +132,7 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 }
 
 func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP) {
-	err := p.client.Collect(context.Background(), client, name, resolved)
+	err := p.collector.Collect(context.Background(), client, name, resolved)
 	if err != nil {
 		//apply policy management error
 		switch err {
