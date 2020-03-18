@@ -12,12 +12,12 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/fall"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
-	"github.com/luisguillenc/grpctls"
 	"github.com/luisguillenc/yalogi"
 	"github.com/miekg/dns"
 
-	"github.com/luids-io/api/xlist/check"
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 
 //Plugin is the main struct of the plugin
@@ -29,7 +29,8 @@ type Plugin struct {
 	cfg      Config
 	logger   yalogi.Logger
 	returnIP string
-	client   *check.Client
+	svc      apiservice.Service
+	checker  xlist.Checker
 	started  bool
 }
 
@@ -53,15 +54,15 @@ func (p *Plugin) Start() error {
 	if p.started {
 		return errors.New("plugin started")
 	}
-	// dial grpc connection
-	dial, err := grpctls.Dial(p.cfg.Endpoint, p.cfg.Client)
-	if err != nil {
-		return fmt.Errorf("cannot dial with %s: %v", p.cfg.Endpoint, err)
+	var ok bool
+	p.svc, ok = luidsapi.GetService(p.cfg.Service)
+	if !ok {
+		return fmt.Errorf("cannot find service '%s'", p.cfg.Service)
 	}
-	// create xlist client
-	p.client = check.NewClient(dial, []xlist.Resource{},
-		check.SetLogger(p.logger),
-		check.SetCache(p.cfg.CacheTTL, p.cfg.CacheTTL))
+	p.checker, ok = p.svc.(xlist.Checker)
+	if !ok {
+		return fmt.Errorf("service '%s' is not a xlist checker api", p.cfg.Service)
+	}
 	p.started = true
 	return nil
 }
@@ -74,8 +75,7 @@ func (p Plugin) Health() bool {
 	if !p.started {
 		return false
 	}
-	err := p.client.Ping()
-	return err == nil
+	return p.svc.Ping() == nil
 }
 
 // Shutdown plugin
@@ -84,7 +84,7 @@ func (p *Plugin) Shutdown() error {
 		return nil
 	}
 	p.started = false
-	return p.client.Close()
+	return nil
 }
 
 // ServeDNS implements the plugin.Handle interface.
@@ -122,7 +122,7 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 		return dns.RcodeRefused, err
 	}
 	//check in blacklist
-	response, err := p.client.Check(ctx, checkres, resource)
+	response, err := p.checker.Check(ctx, checkres, resource)
 	if err == xlist.ErrNotImplemented {
 		p.logger.Debugf("unsupported resource %v for query %s: %v", resource, qname, err)
 		return dns.RcodeRefused, err

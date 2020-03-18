@@ -4,29 +4,23 @@ package xlistrbl
 
 import (
 	"errors"
-	"fmt"
 	"net"
-	"strconv"
-	"strings"
 
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/plugin"
-	"github.com/luisguillenc/grpctls"
 )
 
 // Config stores configuration for the plugin
 type Config struct {
-	Endpoint string
-	Client   grpctls.ClientCfg
+	Service  string
 	Zones    []string
 	ReturnIP string
-	CacheTTL int
 }
 
 // DefaultConfig returns a Config with default values
 func DefaultConfig() Config {
 	return Config{
-		Endpoint: "tcp://127.0.0.1:5801",
+		Service:  "xlistrbl",
 		ReturnIP: "127.0.0.69",
 		Zones:    make([]string, 0),
 	}
@@ -34,13 +28,8 @@ func DefaultConfig() Config {
 
 // Validate configuration
 func (cfg Config) Validate() error {
-	_, _, err := grpctls.ParseURI(cfg.Endpoint)
-	if err != nil {
-		return fmt.Errorf("invalid endpint: %v", err)
-	}
-	err = cfg.Client.Validate()
-	if err != nil {
-		return fmt.Errorf("invalid client config: %v", err)
+	if cfg.Service == "" {
+		return errors.New("service empty")
 	}
 	ip := net.ParseIP(cfg.ReturnIP)
 	if ip == nil {
@@ -91,27 +80,11 @@ type loadCfgFn func(c *caddy.Controller, cfg *Config) error
 
 // main configuration parse map
 var mapConfig = map[string]loadCfgFn{
-	"endpoint": func(c *caddy.Controller, cfg *Config) error {
+	"service": func(c *caddy.Controller, cfg *Config) error {
 		if !c.NextArg() {
 			return c.ArgErr()
 		}
-		value := c.Val()
-		_, _, err := grpctls.ParseURI(value)
-		if err != nil {
-			return c.Errf("invalid endpoint '%s'", value)
-		}
-		cfg.Endpoint = value
-		return nil
-	},
-	"cache": func(c *caddy.Controller, cfg *Config) error {
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		value, err := strconv.Atoi(c.Val())
-		if err != nil {
-			return c.Errf("invalid cache value '%s'", c.Val())
-		}
-		cfg.CacheTTL = value
+		cfg.Service = c.Val()
 		return nil
 	},
 	"returnip": func(c *caddy.Controller, cfg *Config) error {
@@ -123,56 +96,6 @@ var mapConfig = map[string]loadCfgFn{
 			return c.Errf("invalid returnip value '%s'", value)
 		}
 		cfg.ReturnIP = value
-		return nil
-	},
-	//Client options
-	"clientcert": func(c *caddy.Controller, cfg *Config) error {
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		cfg.Client.CertFile = c.Val()
-		return nil
-	},
-	"clientkey": func(c *caddy.Controller, cfg *Config) error {
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		cfg.Client.KeyFile = c.Val()
-		return nil
-	},
-	"servercert": func(c *caddy.Controller, cfg *Config) error {
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		cfg.Client.ServerCert = c.Val()
-		return nil
-	},
-	"servername": func(c *caddy.Controller, cfg *Config) error {
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		cfg.Client.ServerName = c.Val()
-		return nil
-	},
-	"cacert": func(c *caddy.Controller, cfg *Config) error {
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		cfg.Client.CACert = c.Val()
-		return nil
-	},
-	"systemca": func(c *caddy.Controller, cfg *Config) error {
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		switch strings.ToLower(c.Val()) {
-		case "true":
-			cfg.Client.UseSystemCAs = true
-		case "false":
-			cfg.Client.UseSystemCAs = false
-		default:
-			return c.Err("invalid systemca value")
-		}
 		return nil
 	},
 }
