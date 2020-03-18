@@ -7,20 +7,21 @@ import (
 	"fmt"
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
-	"github.com/luisguillenc/grpctls"
 	"github.com/luisguillenc/yalogi"
 
-	"github.com/luids-io/api/event/notify"
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/buffer"
+	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 
 //Plugin is the main struct of the plugin
 type Plugin struct {
-	logger  yalogi.Logger
-	cfg     Config
+	logger yalogi.Logger
+	cfg    Config
+
+	svc     apiservice.Service
 	buffer  *buffer.Buffer
-	client  *notify.Client
 	started bool
 }
 
@@ -42,14 +43,17 @@ func (p *Plugin) Start() error {
 	if p.started {
 		return errors.New("plugin started")
 	}
-	//create dial
-	dial, err := grpctls.Dial(p.cfg.Endpoint, p.cfg.Client)
-	if err != nil {
-		return fmt.Errorf("cannot dial with %s: %v", p.cfg.Endpoint, err)
+	var ok bool
+	p.svc, ok = luidsapi.GetService(p.cfg.Service)
+	if !ok {
+		return fmt.Errorf("cannot find service '%s'", p.cfg.Service)
+	}
+	notifier, ok := p.svc.(event.Notifier)
+	if !ok {
+		return fmt.Errorf("service '%s' is not an event notify api", p.cfg.Service)
 	}
 	//create client and buffer for async event writes
-	p.client = notify.NewClient(dial, notify.SetLogger(p.logger))
-	p.buffer = buffer.New(p.client, p.cfg.Buffer, buffer.SetLogger(p.logger))
+	p.buffer = buffer.New(notifier, p.cfg.Buffer, buffer.SetLogger(p.logger))
 	//register buffer as default event buffer
 	event.SetBuffer(p.buffer)
 	p.started = true
@@ -64,8 +68,7 @@ func (p Plugin) Health() bool {
 	if !p.started {
 		return false
 	}
-	err := p.client.Ping()
-	return err == nil
+	return p.svc.Ping() == nil
 }
 
 // Shutdown plugin
@@ -75,5 +78,5 @@ func (p *Plugin) Shutdown() error {
 	}
 	p.started = false
 	p.buffer.Close()
-	return p.client.Close()
+	return nil
 }

@@ -16,6 +16,9 @@ import (
 	_ "github.com/luids-io/dns/pkg/plugin/resolvcache"
 	_ "github.com/luids-io/dns/pkg/plugin/xlisthole"
 	_ "github.com/luids-io/dns/pkg/plugin/xlistrbl"
+
+	//luids api services
+	_ "github.com/luids-io/api/event/notify"
 )
 
 var directives = []string{
