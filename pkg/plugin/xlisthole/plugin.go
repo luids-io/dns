@@ -14,15 +14,15 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/fall"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
-	"github.com/luisguillenc/grpctls"
 	"github.com/luisguillenc/yalogi"
 	"github.com/miekg/dns"
 
-	"github.com/luids-io/api/xlist/check"
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/codes"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/core/xlist/reason"
+	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 
 // Plugin is the main struct of the plugin
@@ -34,7 +34,8 @@ type Plugin struct {
 	logger  yalogi.Logger
 	metrics *fwmetrics
 	policy  RuleSet
-	client  *check.Client
+	svc     apiservice.Service
+	checker xlist.Checker
 	started bool
 }
 
@@ -66,8 +67,7 @@ func (p Plugin) Health() bool {
 	if !p.started {
 		return false
 	}
-	err := p.client.Ping()
-	return err == nil
+	return p.svc.Ping() == nil
 }
 
 // Start plugin
@@ -75,15 +75,15 @@ func (p *Plugin) Start() error {
 	if p.started {
 		return errors.New("plugin started")
 	}
-	// dial grpc connection
-	dial, err := grpctls.Dial(p.cfg.Endpoint, p.cfg.Client)
-	if err != nil {
-		return fmt.Errorf("cannot dial with %s: %v", p.cfg.Endpoint, err)
+	var ok bool
+	p.svc, ok = luidsapi.GetService(p.cfg.Service)
+	if !ok {
+		return fmt.Errorf("cannot find service '%s'", p.cfg.Service)
 	}
-	// create client
-	p.client = check.NewClient(dial, []xlist.Resource{},
-		check.SetLogger(p.logger),
-		check.SetCache(p.cfg.CacheTTL, p.cfg.CacheTTL))
+	p.checker, ok = p.svc.(xlist.Checker)
+	if !ok {
+		return fmt.Errorf("service '%s' is not a xlist checker api", p.cfg.Service)
+	}
 	p.started = true
 	return nil
 }
@@ -94,7 +94,7 @@ func (p *Plugin) Shutdown() error {
 		return nil
 	}
 	p.started = false
-	return p.client.Close()
+	return nil
 }
 
 // ServeDNS implements the plugin.Handle interface. In this method, the blackhole does
@@ -114,7 +114,7 @@ func (p *Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query 
 		domain = strings.TrimSuffix(domain, ".")
 	}
 	//check in xlist
-	resp, err := p.client.Check(ctx, domain, xlist.Domain)
+	resp, err := p.checker.Check(ctx, domain, xlist.Domain)
 	if err != nil {
 		//on-error
 		p.metrics.errors.WithLabelValues(metrics.WithServer(ctx)).Inc()

@@ -21,6 +21,7 @@ import (
 	_ "github.com/luids-io/api/dnsutil/archive"
 	_ "github.com/luids-io/api/dnsutil/resolvcollect"
 	_ "github.com/luids-io/api/event/notify"
+	_ "github.com/luids-io/api/xlist/check"
 )
 
 var directives = []string{

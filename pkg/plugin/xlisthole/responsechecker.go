@@ -34,7 +34,7 @@ func (r *responseChecker) WriteMsg(q *dns.Msg) error {
 	// prepare parallel queries
 	queries := r.prepareQueries(q.Answer)
 	// do check
-	responses, hasErrors, err := parallel.Check(r.ctx, []xlist.Checker{r.fw.client}, queries)
+	responses, hasErrors, err := parallel.Check(r.ctx, []xlist.Checker{r.fw.checker}, queries)
 	if err != nil {
 		//on-error
 		r.fw.metrics.errors.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
