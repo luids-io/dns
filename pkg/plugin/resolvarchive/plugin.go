@@ -15,20 +15,22 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/fall"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
-	"github.com/luisguillenc/grpctls"
 	"github.com/luisguillenc/yalogi"
 	"github.com/miekg/dns"
 
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/dnsutil"
+	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 
 //Plugin is the main struct of the plugin
 type Plugin struct {
 	Next plugin.Handler
 	Fall fall.F
-
+	//internal
 	logger   yalogi.Logger
 	cfg      Config
+	svc      apiservice.Service
 	archiver *Archiver
 	started  bool
 }
@@ -51,11 +53,16 @@ func (p *Plugin) Start() error {
 	if p.started {
 		return errors.New("plugin started")
 	}
-	dial, err := grpctls.Dial(p.cfg.Endpoint, p.cfg.Client)
-	if err != nil {
-		return fmt.Errorf("cannot dial with %s: %v", p.cfg.Endpoint, err)
+	var ok bool
+	p.svc, ok = luidsapi.GetService(p.cfg.Service)
+	if !ok {
+		return fmt.Errorf("cannot find service '%s'", p.cfg.Service)
 	}
-	p.archiver = NewArchiver(dial, p.cfg.Buffer, p.logger)
+	iarchive, ok := p.svc.(dnsutil.Archiver)
+	if !ok {
+		return fmt.Errorf("service '%s' is not an dnsutil archiver api", p.cfg.Service)
+	}
+	p.archiver = NewArchiver(iarchive, p.cfg.Buffer, p.logger)
 	p.started = true
 	return nil
 }
@@ -114,7 +121,7 @@ func (p Plugin) Health() bool {
 	if !p.started {
 		return false
 	}
-	return p.archiver.Ping() == nil
+	return p.svc.Ping() == nil
 }
 
 // Shutdown plugin
