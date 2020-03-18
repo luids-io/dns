@@ -1,5 +1,5 @@
 [Unit]
-Description=resolvcache service
+Description=resolvcache luIDS service
 After=network.target
 StartLimitIntervalSec=0
 

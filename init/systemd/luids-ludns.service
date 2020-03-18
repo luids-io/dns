@@ -1,5 +1,5 @@
 [Unit]
-Description=ludns service
+Description=ludns luIDS service
 After=network.target
 StartLimitIntervalSec=0
 

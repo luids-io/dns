@@ -1,8 +1,9 @@
 . {
     health
     prometheus :9153
+    luidsapi
     resolvarchive {
-       endpoint {$ARCHIVE_ENDPOINT}
+       service {$ARCHIVE_SVC}
     }
     forward . {$FORWARD_DNS}
 }

@@ -1,17 +1,18 @@
 . {
     health
     prometheus :9153
+    luidsapi
     idsevent {
-       endpoint {$EVENT_ENDPOINT} 
+       service {$EVENT_SVC} 
     }
     xlisthole {
-       endpoint {$XLIST_ENDPOINT}
+       service {$XLIST_SVC}
     }
     resolvarchive {
-       endpoint {$ARCHIVE_ENDPOINT}
+       service {$ARCHIVE_SVC}
     }
     resolvcache {
-       endpoint {$RCACHE_ENDPOINT}
+       service {$RCACHE_SVC}
     }
     forward . {$FORWARD_DNS}
 }

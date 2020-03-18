@@ -1,11 +1,12 @@
 . {
     health
     prometheus :9153
+    luidsapi
     idsevent {
-       endpoint {$EVENT_ENDPOINT} 
+       service {$EVENT_SVC} 
     }
     resolvcache {
-       endpoint {$RCACHE_ENDPOINT}
+       service {$RCACHE_SVC}
     }
     forward . {$FORWARD_DNS}
 }

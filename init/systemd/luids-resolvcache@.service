@@ -1,5 +1,5 @@
 [Unit]
-Description=resolvcache service per-config file
+Description=resolvcache luIDS service per-config file
 After=network.target
 StartLimitIntervalSec=0
 

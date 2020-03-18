@@ -366,6 +366,7 @@ create_service_config() {
 .:1053 {
     #health
     #prometheus :9153
+    #luidsapi
     #idsevent
     #xlisthole
     #resolvcache
@@ -405,7 +406,7 @@ install_systemd_services() {
 		log "creating $SYSTEMD_DIR/luids-ludns.service"
 		{ cat > $SYSTEMD_DIR/luids-ludns.service <<EOF
 [Unit]
-Description=ludns service
+Description=ludns luIDS service
 After=network.target
 StartLimitIntervalSec=0
 
@@ -429,7 +430,7 @@ EOF
 		log "creating $SYSTEMD_DIR/luids-resolvcache.service"
 		{ cat > $SYSTEMD_DIR/luids-resolvcache.service <<EOF
 [Unit]
-Description=resolvcache service
+Description=resolvcache luIDS service
 After=network.target
 StartLimitIntervalSec=0
 
@@ -453,7 +454,7 @@ EOF
 		log "creating $SYSTEMD_DIR/luids-resolvcache@.service"
 		{ cat > $SYSTEMD_DIR/luids-resolvcache@.service <<EOF
 [Unit]
-Description=resolvcache service per-config file
+Description=resolvcache luIDS service per-config file
 After=network.target
 StartLimitIntervalSec=0
 
