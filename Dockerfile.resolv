@@ -34,4 +34,4 @@ USER ludns
 EXPOSE 5891
 EXPOSE 5892
 VOLUME [ "/etc/luids", "/var/lib/luids/dns" ]
-CMD [ "/bin/resolvcache" ]
+CMD [ "/bin/resolvcache", "--config", "/etc/luids/dns/resolvcache.toml" ]
