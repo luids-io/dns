@@ -5,7 +5,7 @@ ARG arch=amd64
 RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certificates
 
 # create user for service
-RUN adduser -D -g '' ludns
+RUN adduser -D -g 'luids' ludns
 
 WORKDIR /app
 ## dependences
@@ -27,11 +27,11 @@ COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/resolvcache /bin/
-COPY --from=build-env /app/configs/docker/resolvcache.toml /etc/ludns/
+COPY --from=build-env /app/configs/docker/resolvcache/* /etc/luids/dns/
 
-USER luresolv
+USER ludns
 
 EXPOSE 5891
 EXPOSE 5892
-VOLUME [ "/etc/ludns", "/var/lib/ludns" ]
+VOLUME [ "/etc/luids", "/var/lib/luids/dns" ]
 CMD [ "/bin/resolvcache" ]

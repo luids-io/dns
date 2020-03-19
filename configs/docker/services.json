@@ -1,0 +1,32 @@
+[
+    {
+        "id": "xlist-check",
+        "api": "luids.xlist.v1.Check",
+        "endpoint": "tcp://xlistd:5801"
+    },
+    {
+        "id": "event-archive",
+        "api": "luids.event.v1.Archive",
+        "endpoint": "tcp://luarchive:5821"
+    },
+    {
+        "id": "event-notify",
+        "api": "luids.event.v1.Notify",
+        "endpoint": "tcp://eventproc:5811"
+    },
+    {
+        "id": "dnsutil-archive",
+        "api": "luids.dnsutil.v1.Archive",
+        "endpoint": "tcp://luarchive:5821"
+    },
+    {
+        "id": "dnsutil-resolvcollect",
+        "api": "luids.dnsutil.v1.ResolvCollect",
+        "endpoint": "tcp://resolvcache:5891"
+    },
+    {
+        "id": "dnsutil-resolvcheck",
+        "api": "luids.dnsutil.v1.ResolvCheck",
+        "endpoint": "tcp://resolvcache:5892"
+    }
+]

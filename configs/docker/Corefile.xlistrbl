@@ -1,8 +1,0 @@
-{$DOMAIN_RBL} {
-    health
-    prometheus :9153
-    luidsapi
-    xlistrbl {
-      service {$XLIST_SVC}
-    }
-}

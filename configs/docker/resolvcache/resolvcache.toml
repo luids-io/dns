@@ -1,5 +1,5 @@
 [resolvcache]
-dumplog  = "/var/cache/luids/dns/cache-dump.log"
+dumplog  = "/var/lib/luids/dns/cache-dump.log"
 dumpsecs = 60
 expire   = 7200
 

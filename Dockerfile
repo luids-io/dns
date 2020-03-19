@@ -23,26 +23,22 @@ LABEL maintainer="Luis Guillén Civera <luisguillenc@gmail.com>"
 RUN apk update && apk add --no-cache bind-tools libcap ca-certificates && update-ca-certificates
 
 # create user for service
-RUN adduser -D -g '' coredns
+RUN adduser -D -g 'luids' ludns
 
 # Import the user and group files from the builder.
 COPY --from=build-env /app/bin/ludns /bin/ludns
-COPY --from=build-env /app/configs/docker/Corefile /etc/ludns/Corefile
+COPY --from=build-env /app/configs/docker/services.json /etc/luids/
+COPY --from=build-env /app/configs/docker/ludns/* /etc/luids/dns/
 
 # Set capabilities
 RUN setcap CAP_NET_BIND_SERVICE=+eip /bin/ludns
 
-USER coredns
-
-ENV XLIST_ENDPOINT  tcp://xlist:5801
-ENV ARCHIVE_ENDPOINT tcp://resolvcache:5821
-ENV RCACHE_ENDPOINT tcp://resolvcache:5891
-ENV EVENT_ENDPOINT  tcp://event:5851
+USER ludns
 
 ENV FORWARD_DNS 8.8.8.8:53
 
 EXPOSE 53 53/udp
 
-VOLUME [ "/etc/ludns" ]
+VOLUME [ "/etc/luids" ]
 
-CMD [ "/bin/ludns", "-conf", "/etc/ludns/Corefile" ]
+CMD [ "/bin/ludns", "-conf", "/etc/luids/dns/Corefile" ]
