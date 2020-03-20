@@ -370,6 +370,7 @@ create_service_config() {
     #idsevent
     #xlisthole
     #resolvcache
+	#resolvarchive
     forward . 8.8.8.8 8.8.4.4
 }
 EOF
@@ -385,11 +386,11 @@ EOF
 		{ cat > $ETC_DIR/$NAME/resolvcache.toml <<EOF
 [resolvcache]
 expire   = 7200
-dumplog  = "${CACHE_DIR}/${NAME}/dump.log"
+dumplog  = "${CACHE_DIR}/${NAME}/cache-dump.log"
 dumpsecs = 60
 
 [collectlog]
-file      = "${VAR_DIR}/${NAME}/collect.log"
+file      = "${VAR_DIR}/${NAME}/cache-collect.log"
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
