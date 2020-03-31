@@ -5,9 +5,8 @@ package resolvarchive
 import (
 	"context"
 
-	"github.com/luisguillenc/yalogi"
-
 	"github.com/luids-io/core/dnsutil"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 // Archiver is an archiver with an channel buffer

@@ -14,12 +14,12 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/fall"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
-	"github.com/luisguillenc/yalogi"
 	"github.com/miekg/dns"
 
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/codes"
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/core/xlist/reason"
 	"github.com/luids-io/dns/pkg/plugin/luidsapi"

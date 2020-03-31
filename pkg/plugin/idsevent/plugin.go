@@ -7,11 +7,11 @@ import (
 	"fmt"
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
-	"github.com/luisguillenc/yalogi"
 
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/event/buffer"
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 

@@ -10,6 +10,8 @@ import (
 	_ "github.com/coredns/coredns/plugin/health"
 	_ "github.com/coredns/coredns/plugin/metrics"
 	_ "github.com/coredns/coredns/plugin/whoami"
+
+	//luids coredns plugins
 	_ "github.com/luids-io/dns/pkg/plugin/idsevent"
 	_ "github.com/luids-io/dns/pkg/plugin/luidsapi"
 	_ "github.com/luids-io/dns/pkg/plugin/resolvarchive"

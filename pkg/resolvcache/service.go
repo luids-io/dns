@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luisguillenc/yalogi"
 	"google.golang.org/grpc/peer"
 
 	"github.com/luids-io/core/dnsutil"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 // Service implements a dnsutil.ResolvCache service

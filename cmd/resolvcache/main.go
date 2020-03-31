@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/luisguillenc/serverd"
 	"github.com/spf13/pflag"
 
+	"github.com/luids-io/core/utils/serverd"
 	"github.com/luids-io/dns/cmd/resolvcache/config"
 )
 

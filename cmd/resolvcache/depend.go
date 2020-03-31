@@ -4,14 +4,14 @@ package main
 
 import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/luisguillenc/serverd"
-	"github.com/luisguillenc/yalogi"
 	"google.golang.org/grpc"
 
 	apicheck "github.com/luids-io/api/dnsutil/resolvcheck"
 	apicollect "github.com/luids-io/api/dnsutil/resolvcollect"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
+	"github.com/luids-io/core/utils/serverd"
+	"github.com/luids-io/core/utils/yalogi"
 	iconfig "github.com/luids-io/dns/internal/config"
 	ifactory "github.com/luids-io/dns/internal/factory"
 	"github.com/luids-io/dns/pkg/resolvcache"

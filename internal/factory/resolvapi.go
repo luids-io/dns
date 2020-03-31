@@ -3,10 +3,9 @@
 package factory
 
 import (
-	"github.com/luisguillenc/yalogi"
-
 	checkapi "github.com/luids-io/api/dnsutil/resolvcheck"
 	collectapi "github.com/luids-io/api/dnsutil/resolvcollect"
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/dns/pkg/resolvcache"
 )
 

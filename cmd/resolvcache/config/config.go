@@ -3,9 +3,8 @@
 package config
 
 import (
-	"github.com/luisguillenc/goconfig"
-
 	cconfig "github.com/luids-io/common/config"
+	"github.com/luids-io/core/utils/goconfig"
 	iconfig "github.com/luids-io/dns/internal/config"
 	"github.com/luids-io/dns/pkg/resolvcache"
 )

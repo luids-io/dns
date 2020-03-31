@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
-	"github.com/luisguillenc/yalogi"
 
 	"github.com/luids-io/core/apiservice"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 //Plugin is the main struct of the plugin
