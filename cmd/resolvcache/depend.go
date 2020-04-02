@@ -3,6 +3,8 @@
 package main
 
 import (
+	"fmt"
+
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 
@@ -81,6 +83,9 @@ func createCollectAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalog
 func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 	cfgServer := cfg.Data("server-collect").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
+	if err == cfactory.ErrURIServerExists {
+		return gsrv, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +93,7 @@ func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     "resolvcache-collect.server",
+		Name:     fmt.Sprintf("[%s].server", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,
@@ -108,6 +113,9 @@ func createCheckAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.
 func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 	cfgServer := cfg.Data("server-check").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
+	if err == cfactory.ErrURIServerExists {
+		return gsrv, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +123,7 @@ func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     "resolvcache-check.server",
+		Name:     fmt.Sprintf("[%s].server", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,
