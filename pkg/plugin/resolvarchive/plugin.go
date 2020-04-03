@@ -80,7 +80,7 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	// fill data with query
 	data := dnsutil.ResolvData{
 		Timestamp:        time.Now(),
-		Server:           net.ParseIP(req.LocalIP()),
+		Server:           p.cfg.ServerIP,
 		Client:           net.ParseIP(req.IP()),
 		QID:              query.Id,
 		Name:             strings.TrimSuffix(req.Name(), "."),
@@ -91,6 +91,10 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	rc, err := plugin.NextOrFailure(p.Name(), p.Next, ctx, rrw, query)
 	if err != nil {
 		return rc, err
+	}
+	// if no default server ip
+	if data.Server == nil {
+		data.Server = net.ParseIP(req.LocalIP())
 	}
 	// fill data with response
 	data.Duration = time.Since(data.Timestamp)
