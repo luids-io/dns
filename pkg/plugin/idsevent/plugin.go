@@ -10,7 +10,7 @@ import (
 
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/event/buffer"
+	"github.com/luids-io/core/event/notifybuffer"
 	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
@@ -21,7 +21,7 @@ type Plugin struct {
 	cfg    Config
 
 	svc     apiservice.Service
-	buffer  *buffer.Buffer
+	buffer  *notifybuffer.Buffer
 	started bool
 }
 
@@ -53,7 +53,7 @@ func (p *Plugin) Start() error {
 		return fmt.Errorf("service '%s' is not an event notify api", p.cfg.Service)
 	}
 	//create client and buffer for async event writes
-	p.buffer = buffer.New(notifier, p.cfg.Buffer, buffer.SetLogger(p.logger))
+	p.buffer = notifybuffer.New(notifier, p.cfg.Buffer, notifybuffer.SetLogger(p.logger))
 	//register buffer as default event buffer
 	event.SetBuffer(p.buffer)
 	p.started = true
