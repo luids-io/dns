@@ -10,10 +10,10 @@ import (
 	"github.com/miekg/dns"
 
 	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/event/codes"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/core/xlist/parallel"
 	"github.com/luids-io/core/xlist/reason"
+	"github.com/luids-io/dns/pkg/plugin/idsevent"
 )
 
 // responseChecker implements dns.ResponseWriter, it is used internally by
@@ -103,12 +103,12 @@ func (r *responseChecker) processResponses(responses []parallel.Response) (Actio
 			}
 			applyRule = rule
 			applyTTL = resp.Response.TTL
-			code = codes.DNSListedIP
+			code = idsevent.DNSListedIP
 			r.fw.metrics.listedIPs.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
 		} else {
 			//if it's not on the list
 			rule = r.fw.policy.IP.Unlisted
-			code = codes.DNSUnlistedIP
+			code = idsevent.DNSUnlistedIP
 			r.fw.metrics.unlistedIPs.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
 		}
 		//now, apply policy for this IP check
@@ -117,8 +117,8 @@ func (r *responseChecker) processResponses(responses []parallel.Response) (Actio
 				resp.Request.Name, resp.Response.Result, resp.Response.Reason)
 		}
 		if rule.Event.Raise {
-			e := event.New(event.Security, code, rule.Event.Level)
-			e.Set("remote", r.req.RemoteAddr())
+			e := event.New(code, rule.Event.Level)
+			e.Set("remote", r.req.IP())
 			e.Set("query", r.req.Name())
 			e.Set("listed", resp.Request.Name)
 			e.Set("reason", reason.Clean(resp.Response.Reason))

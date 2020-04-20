@@ -18,10 +18,10 @@ import (
 
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/event/codes"
 	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/core/xlist/reason"
+	"github.com/luids-io/dns/pkg/plugin/idsevent"
 	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 
@@ -146,7 +146,7 @@ func (p *Plugin) processResponse(ctx context.Context, req *request.Request, doma
 	var code event.Code
 	var rule Rule
 	if resp.Result {
-		code = codes.DNSListedDomain
+		code = idsevent.DNSListedDomain
 		rule = p.policy.Domain.Listed
 		if p.policy.Domain.Merge {
 			err := rule.Merge(resp.Reason)
@@ -156,7 +156,7 @@ func (p *Plugin) processResponse(ctx context.Context, req *request.Request, doma
 		}
 		p.metrics.listedDomains.WithLabelValues(metrics.WithServer(ctx)).Inc()
 	} else {
-		code = codes.DNSUnlistedDomain
+		code = idsevent.DNSUnlistedDomain
 		rule = p.policy.Domain.Unlisted
 		p.metrics.unlistedDomains.WithLabelValues(metrics.WithServer(ctx)).Inc()
 	}
@@ -166,8 +166,8 @@ func (p *Plugin) processResponse(ctx context.Context, req *request.Request, doma
 			domain, resp.Result, reason.Clean(resp.Reason))
 	}
 	if rule.Event.Raise {
-		e := event.New(event.Security, code, rule.Event.Level)
-		e.Set("remote", req.RemoteAddr())
+		e := event.New(code, rule.Event.Level)
+		e.Set("remote", req.IP())
 		e.Set("query", domain)
 		e.Set("listed", domain)
 		e.Set("reason", reason.Clean(resp.Reason))

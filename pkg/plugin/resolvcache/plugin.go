@@ -19,8 +19,8 @@ import (
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/dnsutil"
 	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/event/codes"
 	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/dns/pkg/plugin/idsevent"
 	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 
@@ -142,7 +142,7 @@ func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP) {
 			}
 			if p.policy.MaxClientRequests.Event.Raise {
 				level := p.policy.MaxClientRequests.Event.Level
-				e := event.New(event.Security, codes.DNSMaxClientRequests, level)
+				e := event.New(idsevent.DNSMaxClientRequests, level)
 				e.Set("remote", client)
 				event.Notify(e)
 			}
@@ -152,7 +152,7 @@ func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP) {
 			}
 			if p.policy.MaxNamesResolved.Event.Raise {
 				level := p.policy.MaxNamesResolved.Event.Level
-				e := event.New(event.Security, codes.DNSMaxNamesResolvedIP, level)
+				e := event.New(idsevent.DNSMaxNamesResolvedIP, level)
 				e.Set("remote", client)
 				e.Set("resolved", resolved)
 				event.Notify(e)
