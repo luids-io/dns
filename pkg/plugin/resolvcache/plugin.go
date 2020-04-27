@@ -20,8 +20,8 @@ import (
 	"github.com/luids-io/core/dnsutil"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/dns/pkg/plugin/idsapi"
 	"github.com/luids-io/dns/pkg/plugin/idsevent"
-	"github.com/luids-io/dns/pkg/plugin/luidsapi"
 )
 
 // Plugin is the main struct of the plugin
@@ -54,7 +54,7 @@ func New(cfg Config) (*Plugin, error) {
 // Start plugin
 func (p *Plugin) Start() error {
 	var ok bool
-	p.svc, ok = luidsapi.GetService(p.cfg.Service)
+	p.svc, ok = idsapi.GetService(p.cfg.Service)
 	if !ok {
 		return fmt.Errorf("cannot find service '%s'", p.cfg.Service)
 	}

@@ -22,7 +22,7 @@ type Config struct {
 // DefaultConfig returns a Config with default values
 func DefaultConfig() Config {
 	return Config{
-		Service: "dnsutil-archive",
+		Service: "resolvarchive",
 		Buffer:  100,
 	}
 }

@@ -1,7 +1,7 @@
 . {
     health
     prometheus :9153
-    luidsapi
+    #idsapi
     #idsevent
     #xlisthole
     #resolvarchive

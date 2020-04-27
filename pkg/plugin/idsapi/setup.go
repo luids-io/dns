@@ -1,6 +1,6 @@
 // Copyright 2020 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package luidsapi
+package idsapi
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	caddy.RegisterPlugin("luidsapi", caddy.Plugin{
+	caddy.RegisterPlugin("idsapi", caddy.Plugin{
 		ServerType: "dns",
 		Action:     setup,
 	})
@@ -23,7 +23,7 @@ func init() {
 func setup(c *caddy.Controller) error {
 	p, err := createPlugin(c)
 	if err != nil {
-		return plugin.Error("luidsapi", err)
+		return plugin.Error("idsapi", err)
 	}
 	c.OnStartup(func() error {
 		err := p.Start()

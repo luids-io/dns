@@ -366,7 +366,7 @@ create_service_config() {
 .:1053 {
     #health
     #prometheus :9153
-    #luidsapi
+    #idsapi
     #idsevent
     #xlisthole
     #resolvcache

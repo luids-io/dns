@@ -19,7 +19,7 @@ type Config struct {
 // DefaultConfig returns a Config with default values
 func DefaultConfig() Config {
 	return Config{
-		Service: "event-notify",
+		Service: "idsevent",
 		Buffer:  100,
 	}
 }

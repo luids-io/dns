@@ -1,6 +1,6 @@
 // Copyright 2020 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package luidsapi
+package idsapi
 
 import (
 	"errors"

@@ -20,7 +20,7 @@ type Config struct {
 // DefaultConfig returns a Config with default values
 func DefaultConfig() Config {
 	return Config{
-		Service: "xlist-check",
+		Service: "xlisthole",
 		Policy: RuleSet{
 			Domain: Rules{
 				Listed:   Rule{Action: ActionInfo{Type: SendNXDomain}, Log: true},

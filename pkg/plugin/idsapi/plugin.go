@@ -1,6 +1,6 @@
 // Copyright 2020 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package luidsapi
+package idsapi
 
 import (
 	"errors"
@@ -29,7 +29,7 @@ func New(cfg Config) (*Plugin, error) {
 	}
 	p := &Plugin{
 		cfg:    cfg,
-		logger: wlog{P: clog.NewWithPlugin("luidsapi")},
+		logger: wlog{P: clog.NewWithPlugin("idsapi")},
 	}
 	return p, nil
 }
@@ -49,7 +49,7 @@ func (p *Plugin) Start() error {
 }
 
 // Name implements plugin interface
-func (p Plugin) Name() string { return "luidsapi" }
+func (p Plugin) Name() string { return "idsapi" }
 
 // Health implements plugin health interface
 func (p Plugin) Health() bool {
