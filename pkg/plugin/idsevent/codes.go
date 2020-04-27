@@ -9,12 +9,12 @@ import (
 // Registered event codes
 const (
 	//DNS Blackhole
-	DNSListedDomain   event.Code = 10001
-	DNSUnlistedDomain event.Code = 10002
-	DNSListedIP       event.Code = 10003
-	DNSUnlistedIP     event.Code = 10004
+	DNSListedDomain   event.Code = 10020
+	DNSUnlistedDomain event.Code = 10021
+	DNSListedIP       event.Code = 10022
+	DNSUnlistedIP     event.Code = 10023
 
 	//DNS Collect
-	DNSMaxClientRequests  event.Code = 10005
-	DNSMaxNamesResolvedIP event.Code = 10006
+	DNSMaxClientRequests  event.Code = 10024
+	DNSMaxNamesResolvedIP event.Code = 10025
 )

@@ -13,8 +13,8 @@ require (
 	github.com/lucas-clemente/quic-clients v0.1.0 // indirect
 	github.com/lucas-clemente/quic-go-certificates v0.0.0-20160823095156-d2f86524cced // indirect
 	github.com/luids-io/api v0.0.0-20200420101700-7ef915904345
-	github.com/luids-io/common v0.0.0-20200402071902-620ef2e970dc
-	github.com/luids-io/core v0.0.0-20200420101533-d062c71ed547
+	github.com/luids-io/common v0.0.0-20200424154549-b9f88f4b7ee2
+	github.com/luids-io/core v0.0.0-20200423065407-5f95689cd84b
 	github.com/miekg/dns v1.1.29
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/prometheus/client_golang v1.5.1
