@@ -84,7 +84,10 @@ func createCollectAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalog
 }
 
 func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
-	cfgServer := cfg.Data("server-collect").(*cconfig.ServerCfg)
+	cfgServer := cfg.Data("server.collect").(*cconfig.ServerCfg)
+	if cfgServer.Empty() {
+		cfgServer = cfg.Data("server").(*cconfig.ServerCfg)
+	}
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err == cfactory.ErrURIServerExists {
 		return gsrv, nil
@@ -114,7 +117,10 @@ func createCheckAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.
 }
 
 func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
-	cfgServer := cfg.Data("server-check").(*cconfig.ServerCfg)
+	cfgServer := cfg.Data("server.check").(*cconfig.ServerCfg)
+	if cfgServer.Empty() {
+		cfgServer = cfg.Data("server").(*cconfig.ServerCfg)
+	}
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err == cfactory.ErrURIServerExists {
 		return gsrv, nil

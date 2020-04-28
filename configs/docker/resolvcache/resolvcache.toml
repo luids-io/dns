@@ -1,13 +1,13 @@
 [resolvcache]
-logfile  = "/var/lib/luids/dns/cache.log"
+logfile  = "/var/lib/luids/dns/resolvcache.log"
 expire   = 7200
 
 [resolvcache.dump]
 file  = "/var/lib/luids/dns/cache-dump.log"
 secs  = 60
 
-[server-check]
-listenuri = "tcp://0.0.0.0:5892"
-
-[server-collect]
+[server.collect]
 listenuri = "tcp://0.0.0.0:5891"
+
+[server.check]
+listenuri = "tcp://0.0.0.0:5892"

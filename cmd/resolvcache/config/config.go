@@ -22,18 +22,22 @@ func Default(program string) *goconfig.Config {
 			},
 		},
 		goconfig.Section{
-			Name:     "server-collect",
+			Name:     "server",
 			Required: true,
+			Short:    true,
 			Data: &cconfig.ServerCfg{
 				ListenURI: "tcp://127.0.0.1:5891",
 			},
 		},
 		goconfig.Section{
-			Name:     "server-check",
-			Required: true,
-			Data: &cconfig.ServerCfg{
-				ListenURI: "tcp://127.0.0.1:5892",
-			},
+			Name:     "server.collect",
+			Required: false,
+			Data:     &cconfig.ServerCfg{},
+		},
+		goconfig.Section{
+			Name:     "server.check",
+			Required: false,
+			Data:     &cconfig.ServerCfg{},
 		},
 		goconfig.Section{
 			Name:     "log",
