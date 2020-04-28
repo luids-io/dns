@@ -91,6 +91,7 @@ var mapConfig = map[string]loadCfgFn{
 		if len(args) == 0 {
 			return c.ArgErr()
 		}
+		cfg.ConfigFiles = make([]string, len(args), len(args))
 		copy(cfg.ConfigFiles, args)
 		return nil
 	},
@@ -99,6 +100,7 @@ var mapConfig = map[string]loadCfgFn{
 		if len(args) == 0 {
 			return c.ArgErr()
 		}
+		cfg.ConfigDirs = make([]string, len(args), len(args))
 		copy(cfg.ConfigDirs, args)
 		return nil
 	},
