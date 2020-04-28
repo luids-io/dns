@@ -386,11 +386,12 @@ EOF
 		{ cat > $ETC_DIR/$NAME/resolvcache.toml <<EOF
 [resolvcache]
 expire   = 7200
-dumplog  = "${CACHE_DIR}/${NAME}/cache-dump.log"
-dumpsecs = 60
+logfile  = "${VAR_DIR}/${NAME}/cache.log"
 
-[collectlog]
-file      = "${VAR_DIR}/${NAME}/cache-collect.log"
+[resolvcache.dump]
+file  = "${CACHE_DIR}/${NAME}/cache-dump.log"
+secs  = 60
+
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1

@@ -17,7 +17,7 @@ import (
 	iconfig "github.com/luids-io/dns/internal/config"
 	ifactory "github.com/luids-io/dns/internal/factory"
 	"github.com/luids-io/dns/pkg/resolvcache"
-	"github.com/luids-io/dns/pkg/resolvcache/collectfile"
+	"github.com/luids-io/dns/pkg/resolvcache/cachelog"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
@@ -41,25 +41,28 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 	return nil
 }
 
-func createCollectLogger(msrv *serverd.Manager, logger yalogi.Logger) (resolvcache.CollectLogger, error) {
-	cfgCollectLog := cfg.Data("collectlog").(*iconfig.CollectLogCfg)
-	//creates collection logger if defined
-	var clogger resolvcache.CollectLogger
-	if cfgCollectLog.File != "" {
-		cfile := collectfile.New(cfgCollectLog.File)
+func createCacheLogger(msrv *serverd.Manager, logger yalogi.Logger) (resolvcache.CollectLogger, resolvcache.QueryLogger, error) {
+	cfgRCache := cfg.Data("resolvcache").(*iconfig.ResolvCacheCfg)
+	var clog resolvcache.CollectLogger
+	var qlog resolvcache.QueryLogger
+	if cfgRCache.LogFile != "" {
+		cfile, err := cachelog.NewFile(cfgRCache.LogFile)
+		if err != nil {
+			return nil, nil, err
+		}
 		msrv.Register(serverd.Service{
-			Name:     "collectlog.service",
-			Start:    cfile.Start,
-			Shutdown: cfile.Stop,
+			Name:     "cachelog.service",
+			Shutdown: func() { cfile.Close() },
 		})
-		clogger = cfile
+		clog = cfile
+		qlog = cfile
 	}
-	return clogger, nil
+	return clog, qlog, nil
 }
 
-func createResolvCache(clogger resolvcache.CollectLogger, msrv *serverd.Manager, logger yalogi.Logger) (*resolvcache.Service, error) {
+func createResolvCache(clog resolvcache.CollectLogger, qlog resolvcache.QueryLogger, msrv *serverd.Manager, logger yalogi.Logger) (*resolvcache.Service, error) {
 	cfgRCache := cfg.Data("resolvcache").(*iconfig.ResolvCacheCfg)
-	cache, err := ifactory.ResolvCache(cfgRCache, clogger, logger)
+	cache, err := ifactory.ResolvCache(cfgRCache, clog, qlog, logger)
 	if err != nil {
 		return nil, err
 	}

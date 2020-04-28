@@ -22,11 +22,6 @@ func Default(program string) *goconfig.Config {
 			},
 		},
 		goconfig.Section{
-			Name:     "collectlog",
-			Required: false,
-			Data:     &iconfig.CollectLogCfg{},
-		},
-		goconfig.Section{
 			Name:     "server-collect",
 			Required: true,
 			Data: &cconfig.ServerCfg{

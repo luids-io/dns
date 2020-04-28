@@ -15,7 +15,8 @@ import (
 // ResolvCacheCfg stores repository settings
 type ResolvCacheCfg struct {
 	ExpireSecs int
-	DumpLog    string
+	LogFile    string
+	DumpFile   string
 	DumpSecs   int
 	Limits     resolvcache.Limits
 }
@@ -27,8 +28,10 @@ func (cfg *ResolvCacheCfg) SetPFlags(short bool, prefix string) {
 		aprefix = prefix + "."
 	}
 	pflag.IntVar(&cfg.ExpireSecs, aprefix+"expire", cfg.ExpireSecs, "Expire time in seconds.")
-	pflag.StringVar(&cfg.DumpLog, aprefix+"dumplog", cfg.DumpLog, "Cache dump file for debug.")
-	pflag.IntVar(&cfg.DumpSecs, aprefix+"dumpsecs", cfg.DumpSecs, "Dump interval time in seconds.")
+	pflag.StringVar(&cfg.LogFile, aprefix+"logfile", cfg.LogFile, "Cache operations log file.")
+
+	pflag.StringVar(&cfg.DumpFile, aprefix+"dump.file", cfg.DumpFile, "Cache dump file for debug.")
+	pflag.IntVar(&cfg.DumpSecs, aprefix+"dump.secs", cfg.DumpSecs, "Dump interval time in seconds.")
 
 	pflag.IntVar(&cfg.Limits.BlockSize, aprefix+"limit.blocksize", cfg.Limits.BlockSize, "Limit Blocksize.")
 	pflag.IntVar(&cfg.Limits.MaxBlocksClient, aprefix+"limit.maxblocksclient", cfg.Limits.MaxBlocksClient, "Limit max blocks per client.")
@@ -42,8 +45,10 @@ func (cfg *ResolvCacheCfg) BindViper(v *viper.Viper, prefix string) {
 		aprefix = prefix + "."
 	}
 	util.BindViper(v, aprefix+"expire")
-	util.BindViper(v, aprefix+"dumplog")
-	util.BindViper(v, aprefix+"dumpsecs")
+	util.BindViper(v, aprefix+"logfile")
+
+	util.BindViper(v, aprefix+"dump.file")
+	util.BindViper(v, aprefix+"dump.secs")
 
 	util.BindViper(v, aprefix+"limit.blocksize")
 	util.BindViper(v, aprefix+"limit.maxblocksclient")
@@ -57,8 +62,10 @@ func (cfg *ResolvCacheCfg) FromViper(v *viper.Viper, prefix string) {
 		aprefix = prefix + "."
 	}
 	cfg.ExpireSecs = v.GetInt(aprefix + "expire")
-	cfg.DumpLog = v.GetString(aprefix + "dumplog")
-	cfg.DumpSecs = v.GetInt(aprefix + "dumpsecs")
+	cfg.LogFile = v.GetString(aprefix + "logfile")
+
+	cfg.DumpFile = v.GetString(aprefix + "dump.file")
+	cfg.DumpSecs = v.GetInt(aprefix + "dump.secs")
 
 	cfg.Limits.BlockSize = v.GetInt(aprefix + "limit.blocksize")
 	cfg.Limits.MaxBlocksClient = v.GetInt(aprefix + "limit.maxblocksclient")
@@ -70,7 +77,10 @@ func (cfg ResolvCacheCfg) Empty() bool {
 	if cfg.ExpireSecs > 0 {
 		return false
 	}
-	if cfg.DumpLog != "" {
+	if cfg.LogFile != "" {
+		return false
+	}
+	if cfg.DumpFile != "" {
 		return false
 	}
 	return true

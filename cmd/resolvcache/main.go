@@ -74,13 +74,13 @@ func main() {
 	// creates main server manager instance
 	msrv := serverd.New(serverd.SetLogger(logger))
 
-	// create collect logger
-	clogger, err := createCollectLogger(msrv, logger)
+	// create cache logger
+	clog, qlog, err := createCacheLogger(msrv, logger)
 	if err != nil {
-		logger.Fatalf("creating resolv cache: %v", err)
+		logger.Fatalf("creating cache logger: %v", err)
 	}
 	// create resolv cache
-	cache, err := createResolvCache(clogger, msrv, logger)
+	cache, err := createResolvCache(clog, qlog, msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating resolv cache: %v", err)
 	}

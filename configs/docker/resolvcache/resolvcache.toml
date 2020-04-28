@@ -1,10 +1,10 @@
 [resolvcache]
-dumplog  = "/var/lib/luids/dns/cache-dump.log"
-dumpsecs = 60
+logfile  = "/var/lib/luids/dns/cache.log"
 expire   = 7200
 
-[collectlog]
-file      = "/var/lib/luids/dns/cache-collect.log"
+[resolvcache.dump]
+file  = "/var/lib/luids/dns/cache-dump.log"
+secs  = 60
 
 [server-check]
 listenuri = "tcp://0.0.0.0:5892"

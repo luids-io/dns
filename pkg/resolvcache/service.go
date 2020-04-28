@@ -21,6 +21,7 @@ type Service struct {
 	opts    options
 	logger  yalogi.Logger
 	clogger CollectLogger
+	qlogger QueryLogger
 	// cache
 	cache *Cache
 	//control
@@ -32,7 +33,12 @@ type Service struct {
 
 // CollectLogger interface defines collection logger interface
 type CollectLogger interface {
-	Write(*peer.Peer, time.Time, net.IP, string, []net.IP) error
+	WriteCollect(*peer.Peer, time.Time, net.IP, string, []net.IP) error
+}
+
+// QueryLogger interface defines query logger interface
+type QueryLogger interface {
+	WriteCheck(peer *peer.Peer, ts time.Time, client, resolved net.IP, name string, resp dnsutil.ResolvResponse) error
 }
 
 // Option is used for component configuration
@@ -41,6 +47,7 @@ type Option func(*options)
 type options struct {
 	logger        yalogi.Logger
 	clogger       CollectLogger
+	qlogger       QueryLogger
 	dumpInterval  time.Duration
 	cleanInterval time.Duration
 	dumpFile      string
@@ -68,6 +75,13 @@ func SetCollectLogger(l CollectLogger) Option {
 	}
 }
 
+// SetQueryLogger sets a query logger
+func SetQueryLogger(l QueryLogger) Option {
+	return func(o *options) {
+		o.qlogger = l
+	}
+}
+
 // SetLogger option allows set a custom logger
 func SetLogger(l yalogi.Logger) Option {
 	return func(o *options) {
@@ -87,6 +101,7 @@ func NewService(c *Cache, opt ...Option) *Service {
 		opts:    opts,
 		logger:  opts.logger,
 		clogger: opts.clogger,
+		qlogger: opts.qlogger,
 		cache:   c,
 	}
 	return s
@@ -104,9 +119,9 @@ func (s *Service) Collect(ctx context.Context, client net.IP, name string, resol
 	}
 	if s.clogger != nil {
 		peer, _ := peer.FromContext(ctx)
-		err := s.clogger.Write(peer, now, client, name, resolved)
+		err := s.clogger.WriteCollect(peer, now, client, name, resolved)
 		if err != nil {
-			s.logger.Warnf("writting to logger '%v,%v,%v': %v", client, name, resolved)
+			s.logger.Warnf("writting to collect logger '%v,%v,%v': %v", client, name, resolved)
 		}
 	}
 	return err
@@ -117,9 +132,17 @@ func (s *Service) Check(ctx context.Context, client, resolved net.IP, name strin
 	if !s.started {
 		return dnsutil.ResolvResponse{}, errors.New("service not started")
 	}
+	now := time.Now()
 	resp := dnsutil.ResolvResponse{}
 	resp.Result, resp.Last = s.cache.Get(client, resolved, name)
 	resp.Store = s.cache.Store()
+	if s.qlogger != nil {
+		peer, _ := peer.FromContext(ctx)
+		err := s.qlogger.WriteCheck(peer, now, client, resolved, name, resp)
+		if err != nil {
+			s.logger.Warnf("writting to query logger '%v,%v,%v': %v", client, name, resolved)
+		}
+	}
 	return resp, nil
 }
 
