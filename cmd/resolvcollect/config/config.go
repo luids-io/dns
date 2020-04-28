@@ -11,8 +11,9 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
-			Name:     "",
+			Name:     "client",
 			Required: true,
+			Short:    true,
 			Data: &cconfig.ClientCfg{
 				RemoteURI: "tcp://127.0.0.1:5891",
 			},
