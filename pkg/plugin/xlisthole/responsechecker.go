@@ -114,7 +114,7 @@ func (r *responseChecker) processResponses(responses []parallel.Response) (Actio
 		//now, apply policy for this IP check
 		if rule.Log {
 			r.fw.logger.Infof("%s check '%s' response: %v '%s'", r.req.RemoteAddr(),
-				resp.Request.Name, resp.Response.Result, resp.Response.Reason)
+				resp.Request.Name, resp.Response.Result, reason.Clean(resp.Response.Reason))
 		}
 		if rule.Event.Raise {
 			e := event.New(code, rule.Event.Level)
