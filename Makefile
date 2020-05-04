@@ -20,7 +20,7 @@ BUILDLDFLAGS=-ldflags '-s -w $(EXTRA_LDFLAGS)'
 WHALE = "+"
 
 
-.PHONY: all binaries clean
+.PHONY: all binaries clean docker
 all: binaries
 
 
@@ -42,6 +42,11 @@ clean:
 	@echo "$(WHALE) $@"
 	@rm -f $(BINARIES)
 	@rmdir bin
+
+docker:
+	@echo "$(WHALE) $@"
+	docker build -t ludns -f Dockerfile.ludns .
+	docker build -t resolvcache -f Dockerfile.resolvcache .
 
 ## Targets for Makefile.release
 .PHONY: release

@@ -1,4 +1,4 @@
-FROM golang:alpine as build-env
+FROM golang:1.13-alpine as build-env
 ARG arch=amd64
 
 # Install git and certificates
