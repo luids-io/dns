@@ -15,7 +15,7 @@ func Default(program string) *goconfig.Config {
 			Required: true,
 			Short:    true,
 			Data: &cconfig.ClientCfg{
-				RemoteURI: "tcp://127.0.0.1:5892",
+				RemoteURI: "tcp://127.0.0.1:5891",
 			},
 		},
 		goconfig.Section{
