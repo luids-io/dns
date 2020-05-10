@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luids-io/core/dnsutil"
+	"github.com/luids-io/api/dnsutil"
 )
 
 // this struct is per dns client ip

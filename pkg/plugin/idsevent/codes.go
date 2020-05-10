@@ -3,7 +3,7 @@
 package idsevent
 
 import (
-	"github.com/luids-io/core/event"
+	"github.com/luids-io/api/event"
 )
 
 // Registered event codes

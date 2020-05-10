@@ -12,8 +12,8 @@ import (
 
 	"google.golang.org/grpc/peer"
 
-	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/api/dnsutil"
+	"github.com/luids-io/core/yalogi"
 )
 
 // Service implements a dnsutil.ResolvCache service

@@ -4,7 +4,7 @@ package config
 
 import (
 	cconfig "github.com/luids-io/common/config"
-	"github.com/luids-io/core/utils/goconfig"
+	"github.com/luids-io/core/goconfig"
 	iconfig "github.com/luids-io/dns/internal/config"
 	"github.com/luids-io/dns/pkg/resolvcache"
 )

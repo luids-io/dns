@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/dns/internal/config"
 	"github.com/luids-io/dns/pkg/resolvcache"
 	"github.com/luids-io/dns/pkg/resolvcache/cachelog"

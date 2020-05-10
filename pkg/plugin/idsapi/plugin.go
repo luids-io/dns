@@ -9,7 +9,7 @@ import (
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 
 	"github.com/luids-io/core/apiservice"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 )
 
 //Plugin is the main struct of the plugin

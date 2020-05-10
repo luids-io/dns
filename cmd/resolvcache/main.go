@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/luids-io/core/utils/serverd"
+	"github.com/luids-io/core/serverd"
 	"github.com/luids-io/dns/cmd/resolvcache/config"
 )
 

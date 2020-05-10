@@ -17,9 +17,9 @@ import (
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 
+	"github.com/luids-io/api/dnsutil"
 	"github.com/luids-io/core/apiservice"
-	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/dns/pkg/plugin/idsapi"
 )
 

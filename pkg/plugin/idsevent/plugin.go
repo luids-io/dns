@@ -8,10 +8,10 @@ import (
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 
+	"github.com/luids-io/api/event"
+	"github.com/luids-io/api/event/notifybuffer"
 	"github.com/luids-io/core/apiservice"
-	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/event/notifybuffer"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/dns/pkg/plugin/idsapi"
 )
 

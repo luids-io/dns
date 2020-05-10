@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luids-io/core/dnsutil"
+	"github.com/luids-io/api/dnsutil"
 )
 
 // stores resolved ips and names

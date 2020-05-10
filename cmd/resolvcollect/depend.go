@@ -3,10 +3,10 @@
 package main
 
 import (
-	"github.com/luids-io/api/dnsutil/resolvcollect"
+	"github.com/luids-io/api/dnsutil/grpc/resolvcollect"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {

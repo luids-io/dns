@@ -12,9 +12,9 @@ require (
 	github.com/lucas-clemente/aes12 v0.0.0-20171027163421-cd47fb39b79f // indirect
 	github.com/lucas-clemente/quic-clients v0.1.0 // indirect
 	github.com/lucas-clemente/quic-go-certificates v0.0.0-20160823095156-d2f86524cced // indirect
-	github.com/luids-io/api v0.0.0-20200510115821-46cfb579ffe6
-	github.com/luids-io/common v0.0.0-20200424154549-b9f88f4b7ee2
-	github.com/luids-io/core v0.0.0-20200510115736-9a0271820b78
+	github.com/luids-io/api v0.0.0-20200510170952-4fbad83b71e4
+	github.com/luids-io/common v0.0.0-20200510171107-c796758176cb
+	github.com/luids-io/core v0.0.0-20200510170922-2c52d0c97115
 	github.com/miekg/dns v1.1.29
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/prometheus/client_golang v1.5.1

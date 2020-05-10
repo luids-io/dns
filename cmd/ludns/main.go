@@ -20,10 +20,10 @@ import (
 	_ "github.com/luids-io/dns/pkg/plugin/xlistrbl"
 
 	//luids api services
-	_ "github.com/luids-io/api/dnsutil/archive"
-	_ "github.com/luids-io/api/dnsutil/resolvcollect"
-	_ "github.com/luids-io/api/event/notify"
-	_ "github.com/luids-io/api/xlist/check"
+	_ "github.com/luids-io/api/dnsutil/grpc/archive"
+	_ "github.com/luids-io/api/dnsutil/grpc/resolvcollect"
+	_ "github.com/luids-io/api/event/grpc/notify"
+	_ "github.com/luids-io/api/xlist/grpc/check"
 )
 
 var directives = []string{
