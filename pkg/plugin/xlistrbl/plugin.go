@@ -123,8 +123,8 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	}
 	//check in blacklist
 	response, err := p.checker.Check(ctx, checkres, resource)
-	if err == xlist.ErrNotImplemented {
-		p.logger.Debugf("unsupported resource %v for query %s: %v", resource, qname, err)
+	if err == xlist.ErrNotSupported {
+		p.logger.Debugf("unsupported resource %v for query %s", resource, qname)
 		return dns.RcodeRefused, err
 	}
 	if err != nil {

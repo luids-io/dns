@@ -136,7 +136,7 @@ func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP) {
 	if err != nil {
 		//apply policy management error
 		switch err {
-		case dnsutil.ErrCollectDNSClientLimit:
+		case dnsutil.ErrLimitDNSClientQueries:
 			if p.policy.MaxClientRequests.Log {
 				p.logger.Infof("%v", err)
 			}
@@ -146,7 +146,7 @@ func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP) {
 				e.Set("remote", client)
 				event.Notify(e)
 			}
-		case dnsutil.ErrCollectNamesLimit:
+		case dnsutil.ErrLimitResolvedNamesIP:
 			if p.policy.MaxNamesResolved.Log {
 				p.logger.Infof("%v", err)
 			}

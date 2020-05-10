@@ -96,7 +96,7 @@ func (c *clientBlock) nextFreeBlock() (*resolvBlock, error) {
 	}
 	//checks limits
 	if len(c.blocks) > c.cache.limits.MaxBlocksClient {
-		return nil, dnsutil.ErrCollectDNSClientLimit
+		return nil, dnsutil.ErrLimitDNSClientQueries
 	}
 	//returns a new block
 	return c.newResolvBlock(), nil

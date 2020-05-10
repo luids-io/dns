@@ -122,7 +122,7 @@ func (n *node) update(name string, ts time.Time, max int) error {
 		}
 		// check limits
 		if len(n.others) >= max {
-			return dnsutil.ErrCollectNamesLimit
+			return dnsutil.ErrLimitResolvedNamesIP
 		}
 		// add new name
 		n.others = append(n.others, item{name: name, ts: ts})

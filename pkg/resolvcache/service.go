@@ -110,7 +110,7 @@ func NewService(c *Cache, opt ...Option) *Service {
 // Collect implements dnsutil.ResolvCollector
 func (s *Service) Collect(ctx context.Context, client net.IP, name string, resolved []net.IP) error {
 	if !s.started {
-		return errors.New("service not started")
+		return dnsutil.ErrUnavailable
 	}
 	now := time.Now()
 	err := s.cache.Set(now, client, name, resolved)
@@ -130,7 +130,7 @@ func (s *Service) Collect(ctx context.Context, client net.IP, name string, resol
 // Check implements dnsutil.ResolvChecker
 func (s *Service) Check(ctx context.Context, client, resolved net.IP, name string) (dnsutil.ResolvResponse, error) {
 	if !s.started {
-		return dnsutil.ResolvResponse{}, errors.New("service not started")
+		return dnsutil.ResolvResponse{}, dnsutil.ErrUnavailable
 	}
 	now := time.Now()
 	resp := dnsutil.ResolvResponse{}
@@ -149,7 +149,7 @@ func (s *Service) Check(ctx context.Context, client, resolved net.IP, name strin
 // Uptime returns cache information
 func (s *Service) Uptime(ctx context.Context) (time.Time, time.Duration, error) {
 	if !s.started {
-		return time.Time{}, 0, errors.New("service not started")
+		return time.Time{}, 0, dnsutil.ErrUnavailable
 	}
 	return s.cache.Flushed(), s.cache.Expires(), nil
 }
