@@ -85,6 +85,11 @@ func main() {
 		logger.Fatalf("creating resolv cache: %v", err)
 	}
 
+	if dryRun {
+		fmt.Println("configuration seems ok")
+		os.Exit(0)
+	}
+
 	// create collector server
 	cgsrv, err := createCollectSrv(msrv)
 	if err != nil {
