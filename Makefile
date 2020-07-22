@@ -45,8 +45,10 @@ clean:
 
 docker:
 	@echo "$(WHALE) $@"
-	docker build -t ludns -f Dockerfile.ludns .
-	docker build -t resolvcache -f Dockerfile.resolvcache .
+	docker build -t ludns -f Dockerfile.ludns \
+		--build-arg github_user=${github_user} --build-arg github_token=${github_token} .
+	docker build -t resolvcache -f Dockerfile.resolvcache \
+		--build-arg github_user=${github_user} --build-arg github_token=${github_token} .
 
 ## Targets for Makefile.release
 .PHONY: release
