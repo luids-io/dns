@@ -6,8 +6,5 @@ expire   = 7200
 file  = "/var/lib/luids/dns/cache-dump.log"
 secs  = 60
 
-[server.collect]
+[server]
 listenuri = "tcp://0.0.0.0:5891"
-
-[server.check]
-listenuri = "tcp://0.0.0.0:5892"

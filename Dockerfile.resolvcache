@@ -12,7 +12,10 @@ ENV github_token=$github_token
 RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certificates
 
 # create user for service
-RUN adduser -D -g 'luids' ludns
+RUN adduser -D -g 'luids' ludns \
+    && mkdir -p /var/lib/luids/dns \
+    && touch /var/lib/luids/dns/.keep \
+    && chown -R ludns /var/lib/luids/dns
 
 WORKDIR /app
 
@@ -41,10 +44,10 @@ COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/resolvcache /bin/
 COPY --from=build-env /app/configs/docker/resolvcache/* /etc/luids/dns/
+COPY --from=build-env /var/lib/luids /var/lib/luids
 
 USER ludns
 
 EXPOSE 5891
-EXPOSE 5892
 VOLUME [ "/etc/luids", "/var/lib/luids/dns" ]
 CMD [ "/bin/resolvcache", "--config", "/etc/luids/dns/resolvcache.toml" ]
