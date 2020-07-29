@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/luids-io/api/event"
-	"github.com/luids-io/api/xlist/reason"
+	"github.com/luids-io/core/reason"
 )
 
 // RuleSet stores the policy items

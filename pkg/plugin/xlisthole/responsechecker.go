@@ -12,7 +12,7 @@ import (
 	"github.com/luids-io/api/event"
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/api/xlist/parallel"
-	"github.com/luids-io/api/xlist/reason"
+	"github.com/luids-io/core/reason"
 	"github.com/luids-io/dns/pkg/plugin/idsevent"
 )
 

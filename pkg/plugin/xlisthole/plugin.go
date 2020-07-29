@@ -18,8 +18,8 @@ import (
 
 	"github.com/luids-io/api/event"
 	"github.com/luids-io/api/xlist"
-	"github.com/luids-io/api/xlist/reason"
 	"github.com/luids-io/core/apiservice"
+	"github.com/luids-io/core/reason"
 	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/dns/pkg/plugin/idsapi"
 	"github.com/luids-io/dns/pkg/plugin/idsevent"
