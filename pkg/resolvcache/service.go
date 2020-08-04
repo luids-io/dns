@@ -18,10 +18,9 @@ import (
 
 // Service implements a dnsutil.ResolvCache service
 type Service struct {
-	opts    options
-	logger  yalogi.Logger
-	clogger CollectLogger
-	qlogger QueryLogger
+	opts   options
+	logger yalogi.Logger
+	trace  TraceLogger
 	// cache
 	cache *Cache
 	//control
@@ -31,14 +30,10 @@ type Service struct {
 	close   chan struct{}
 }
 
-// CollectLogger interface defines collection logger interface
-type CollectLogger interface {
-	WriteCollect(*peer.Peer, time.Time, net.IP, string, []net.IP) error
-}
-
-// QueryLogger interface defines query logger interface
-type QueryLogger interface {
-	WriteCheck(peer *peer.Peer, ts time.Time, client, resolved net.IP, name string, resp dnsutil.ResolvResponse) error
+// TraceLogger interface defines collection and query logger interface
+type TraceLogger interface {
+	LogCollect(*peer.Peer, time.Time, net.IP, string, []net.IP) error
+	LogCheck(peer *peer.Peer, ts time.Time, client, resolved net.IP, name string, resp dnsutil.CacheResponse) error
 }
 
 // Option is used for component configuration
@@ -46,8 +41,7 @@ type Option func(*options)
 
 type options struct {
 	logger        yalogi.Logger
-	clogger       CollectLogger
-	qlogger       QueryLogger
+	trace         TraceLogger
 	dumpInterval  time.Duration
 	cleanInterval time.Duration
 	dumpFile      string
@@ -68,17 +62,10 @@ func DumpCache(d time.Duration, fname string) Option {
 	}
 }
 
-// SetCollectLogger sets a collection logger
-func SetCollectLogger(l CollectLogger) Option {
+// SetTraceLogger sets a collection and query logger
+func SetTraceLogger(l TraceLogger) Option {
 	return func(o *options) {
-		o.clogger = l
-	}
-}
-
-// SetQueryLogger sets a query logger
-func SetQueryLogger(l QueryLogger) Option {
-	return func(o *options) {
-		o.qlogger = l
+		o.trace = l
 	}
 }
 
@@ -98,11 +85,10 @@ func NewService(c *Cache, opt ...Option) *Service {
 		o(&opts)
 	}
 	s := &Service{
-		opts:    opts,
-		logger:  opts.logger,
-		clogger: opts.clogger,
-		qlogger: opts.qlogger,
-		cache:   c,
+		opts:   opts,
+		logger: opts.logger,
+		trace:  opts.trace,
+		cache:  c,
 	}
 	return s
 }
@@ -117,9 +103,9 @@ func (s *Service) Collect(ctx context.Context, client net.IP, name string, resol
 	if err != nil {
 		s.logger.Warnf("collecting '%v,%v,%v': %v", client, name, resolved)
 	}
-	if s.clogger != nil {
+	if s.trace != nil {
 		peer, _ := peer.FromContext(ctx)
-		err := s.clogger.WriteCollect(peer, now, client, name, resolved)
+		err := s.trace.LogCollect(peer, now, client, name, resolved)
 		if err != nil {
 			s.logger.Warnf("writting to collect logger '%v,%v,%v': %v", client, name, resolved)
 		}
@@ -128,17 +114,17 @@ func (s *Service) Collect(ctx context.Context, client net.IP, name string, resol
 }
 
 // Check implements dnsutil.ResolvChecker
-func (s *Service) Check(ctx context.Context, client, resolved net.IP, name string) (dnsutil.ResolvResponse, error) {
+func (s *Service) Check(ctx context.Context, client, resolved net.IP, name string) (dnsutil.CacheResponse, error) {
 	if !s.started {
-		return dnsutil.ResolvResponse{}, dnsutil.ErrUnavailable
+		return dnsutil.CacheResponse{}, dnsutil.ErrUnavailable
 	}
 	now := time.Now()
-	resp := dnsutil.ResolvResponse{}
+	resp := dnsutil.CacheResponse{}
 	resp.Result, resp.Last = s.cache.Get(client, resolved, name)
 	resp.Store = s.cache.Store()
-	if s.qlogger != nil {
+	if s.trace != nil {
 		peer, _ := peer.FromContext(ctx)
-		err := s.qlogger.WriteCheck(peer, now, client, resolved, name, resp)
+		err := s.trace.LogCheck(peer, now, client, resolved, name, resp)
 		if err != nil {
 			s.logger.Warnf("writting to query logger '%v,%v,%v': %v", client, name, resolved)
 		}

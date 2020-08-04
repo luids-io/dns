@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package cachelog
+package tracelog
 
 import (
 	"errors"
@@ -14,8 +14,8 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
-// LogFile implements an asyncronous cache.CollectLogger and cache.QueryLogger using a file for storage
-type LogFile struct {
+// File implements an asyncronous resolvcache.TraceLogger using a file for storage
+type File struct {
 	fname    string
 	file     *os.File
 	closed   bool
@@ -51,7 +51,7 @@ type logData struct {
 	client   net.IP
 	name     string
 	resolved []net.IP
-	response dnsutil.ResolvResponse
+	response dnsutil.CacheResponse
 }
 
 func (data *logData) String() string {
@@ -79,18 +79,18 @@ func (data *logData) String() string {
 }
 
 // NewFile creates a new logger
-func NewFile(fname string) (*LogFile, error) {
-	file := &LogFile{fname: fname}
+func NewFile(fname string) (*File, error) {
+	file := &File{fname: fname}
 	if err := file.init(); err != nil {
 		return nil, err
 	}
 	return file, nil
 }
 
-// WriteCollect implements cache.CollectLogger
-func (f *LogFile) WriteCollect(peer *peer.Peer, ts time.Time, client net.IP, name string, resolved []net.IP) error {
+// LogCollect implements resolvcache.TraceLogger
+func (f *File) LogCollect(peer *peer.Peer, ts time.Time, client net.IP, name string, resolved []net.IP) error {
 	if f.closed {
-		return errors.New("log is closed")
+		return errors.New("tracelog: log is closed")
 	}
 	f.data <- &logData{
 		op:       opCollect,
@@ -103,10 +103,10 @@ func (f *LogFile) WriteCollect(peer *peer.Peer, ts time.Time, client net.IP, nam
 	return nil
 }
 
-// WriteCheck implements cache.QueryLogger
-func (f *LogFile) WriteCheck(peer *peer.Peer, ts time.Time, client, resolved net.IP, name string, resp dnsutil.ResolvResponse) error {
+// LogCheck implements resolvcache.TraceLogger
+func (f *File) LogCheck(peer *peer.Peer, ts time.Time, client, resolved net.IP, name string, resp dnsutil.CacheResponse) error {
 	if f.closed {
-		return errors.New("log is closed")
+		return errors.New("tracelog: log is closed")
 	}
 	f.data <- &logData{
 		op:       opCheck,
@@ -121,7 +121,7 @@ func (f *LogFile) WriteCheck(peer *peer.Peer, ts time.Time, client, resolved net
 }
 
 // init  logger
-func (f *LogFile) init() error {
+func (f *File) init() error {
 	var err error
 	f.file, err = os.Create(f.fname)
 	if err != nil {
@@ -135,9 +135,9 @@ func (f *LogFile) init() error {
 }
 
 // Close logger
-func (f *LogFile) Close() error {
+func (f *File) Close() error {
 	if f.closed {
-		return errors.New("log is closed")
+		return errors.New("tracelog: log is closed")
 	}
 	f.closed = true
 	close(f.closeSig)
@@ -147,7 +147,7 @@ func (f *LogFile) Close() error {
 	return f.file.Close()
 }
 
-func (f *LogFile) run() {
+func (f *File) run() {
 PROCESSLOOP:
 	for {
 		select {

@@ -17,7 +17,7 @@ import (
 	iconfig "github.com/luids-io/dns/internal/config"
 	ifactory "github.com/luids-io/dns/internal/factory"
 	"github.com/luids-io/dns/pkg/resolvcache"
-	"github.com/luids-io/dns/pkg/resolvcache/cachelog"
+	"github.com/luids-io/dns/pkg/resolvcache/tracelog"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
@@ -33,7 +33,7 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 			logger.Fatalf("creating health server: %v", err)
 		}
 		msrv.Register(serverd.Service{
-			Name:     "health.server",
+			Name:     fmt.Sprintf("health.[%s]", cfgHealth.ListenURI),
 			Start:    func() error { go health.Serve(hlis); return nil },
 			Shutdown: func() { health.Close() },
 		})
@@ -41,33 +41,31 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 	return nil
 }
 
-func createCacheLogger(msrv *serverd.Manager, logger yalogi.Logger) (resolvcache.CollectLogger, resolvcache.QueryLogger, error) {
+func createTraceLogger(msrv *serverd.Manager, logger yalogi.Logger) (resolvcache.TraceLogger, error) {
 	cfgRCache := cfg.Data("resolvcache").(*iconfig.ResolvCacheCfg)
-	var clog resolvcache.CollectLogger
-	var qlog resolvcache.QueryLogger
-	if cfgRCache.LogFile != "" {
-		cfile, err := cachelog.NewFile(cfgRCache.LogFile)
+	var trace resolvcache.TraceLogger
+	if cfgRCache.TraceFile != "" {
+		cfile, err := tracelog.NewFile(cfgRCache.TraceFile)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		msrv.Register(serverd.Service{
-			Name:     "cachelog.service",
+			Name:     "tracelog",
 			Shutdown: func() { cfile.Close() },
 		})
-		clog = cfile
-		qlog = cfile
+		trace = cfile
 	}
-	return clog, qlog, nil
+	return trace, nil
 }
 
-func createResolvCache(clog resolvcache.CollectLogger, qlog resolvcache.QueryLogger, msrv *serverd.Manager, logger yalogi.Logger) (*resolvcache.Service, error) {
+func createResolvCache(trace resolvcache.TraceLogger, msrv *serverd.Manager, logger yalogi.Logger) (*resolvcache.Service, error) {
 	cfgRCache := cfg.Data("resolvcache").(*iconfig.ResolvCacheCfg)
-	cache, err := ifactory.ResolvCache(cfgRCache, clog, qlog, logger)
+	cache, err := ifactory.ResolvCache(cfgRCache, trace, logger)
 	if err != nil {
 		return nil, err
 	}
 	msrv.Register(serverd.Service{
-		Name:     "resolvcache.service",
+		Name:     "resolvcache",
 		Start:    cache.Start,
 		Shutdown: cache.Shutdown,
 	})
@@ -99,7 +97,7 @@ func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     fmt.Sprintf("[%s].server", cfgServer.ListenURI),
+		Name:     fmt.Sprintf("server.[%s]", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,
@@ -116,11 +114,8 @@ func createCheckAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.
 	return nil
 }
 
-func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
-	cfgServer := cfg.Data("server.check").(*cconfig.ServerCfg)
-	if cfgServer.Empty() {
-		cfgServer = cfg.Data("server").(*cconfig.ServerCfg)
-	}
+func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
+	cfgServer := cfg.Data("server").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err == cfactory.ErrURIServerExists {
 		return gsrv, nil
@@ -132,7 +127,7 @@ func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     fmt.Sprintf("[%s].server", cfgServer.ListenURI),
+		Name:     fmt.Sprintf("server.[%s]", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,

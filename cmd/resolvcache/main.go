@@ -75,12 +75,12 @@ func main() {
 	msrv := serverd.New(serverd.SetLogger(logger))
 
 	// create cache logger
-	clog, qlog, err := createCacheLogger(msrv, logger)
+	trace, err := createTraceLogger(msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating cache logger: %v", err)
 	}
 	// create resolv cache
-	cache, err := createResolvCache(clog, qlog, msrv, logger)
+	cache, err := createResolvCache(trace, msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating resolv cache: %v", err)
 	}
@@ -90,6 +90,15 @@ func main() {
 		os.Exit(0)
 	}
 
+	// create checker server
+	fgsrv, err := createServer(msrv)
+	if err != nil {
+		logger.Fatalf("creating check server: %v", err)
+	}
+	err = createCheckAPI(fgsrv, cache, logger)
+	if err != nil {
+		logger.Fatalf("creating check api: %v", err)
+	}
 	// create collector server
 	cgsrv, err := createCollectSrv(msrv)
 	if err != nil {
@@ -98,15 +107,6 @@ func main() {
 	err = createCollectAPI(cgsrv, cache, logger)
 	if err != nil {
 		logger.Fatalf("creating collect api: %v", err)
-	}
-	// create checker server
-	fgsrv, err := createCheckSrv(msrv)
-	if err != nil {
-		logger.Fatalf("creating check server: %v", err)
-	}
-	err = createCheckAPI(fgsrv, cache, logger)
-	if err != nil {
-		logger.Fatalf("creating check api: %v", err)
 	}
 
 	// creates health server
