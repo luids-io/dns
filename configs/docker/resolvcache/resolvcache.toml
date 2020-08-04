@@ -1,6 +1,8 @@
 [resolvcache]
-logfile  = "/var/lib/luids/dns/resolvcache.log"
 expire   = 7200
+
+[resolvcache.trace]
+file  = "/var/lib/luids/dns/resolvcache.log"
 
 [resolvcache.dump]
 file  = "/var/lib/luids/dns/cache-dump.log"

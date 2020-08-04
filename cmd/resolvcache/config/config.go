@@ -22,6 +22,22 @@ func Default(program string) *goconfig.Config {
 			},
 		},
 		goconfig.Section{
+			Name:     "service.dnsutil.resolvcollect",
+			Required: true,
+			Data: &iconfig.ResolvCollectAPICfg{
+				Enable: true,
+				Log:    true,
+			},
+		},
+		goconfig.Section{
+			Name:     "service.dnsutil.resolvcheck",
+			Required: true,
+			Data: &iconfig.ResolvCheckAPICfg{
+				Enable: true,
+				Log:    true,
+			},
+		},
+		goconfig.Section{
 			Name:     "server",
 			Required: true,
 			Short:    true,
@@ -31,11 +47,6 @@ func Default(program string) *goconfig.Config {
 		},
 		goconfig.Section{
 			Name:     "server.collect",
-			Required: false,
-			Data:     &cconfig.ServerCfg{},
-		},
-		goconfig.Section{
-			Name:     "server.check",
 			Required: false,
 			Data:     &cconfig.ServerCfg{},
 		},

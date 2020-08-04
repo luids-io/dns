@@ -72,20 +72,34 @@ func createResolvCache(trace resolvcache.TraceLogger, msrv *serverd.Manager, log
 	return cache, nil
 }
 
-func createCollectAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.Logger) error {
-	gsvc, err := ifactory.ResolvCollectAPI(csvc, logger)
-	if err != nil {
-		return err
+func createCollectAPI(gsrv *grpc.Server, csvc *resolvcache.Service, msrv *serverd.Manager, logger yalogi.Logger) error {
+	cfgAPI := cfg.Data("service.dnsutil.resolvcollect").(*iconfig.ResolvCollectAPICfg)
+	if cfgAPI.Enable {
+		gsvc, err := ifactory.ResolvCollectAPI(cfgAPI, csvc, logger)
+		if err != nil {
+			return err
+		}
+		apicollect.RegisterServer(gsrv, gsvc)
+		msrv.Register(serverd.Service{Name: "service.dnsutil.resolvcollect"})
 	}
-	apicollect.RegisterServer(gsrv, gsvc)
 	return nil
 }
 
-func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
-	cfgServer := cfg.Data("server.collect").(*cconfig.ServerCfg)
-	if cfgServer.Empty() {
-		cfgServer = cfg.Data("server").(*cconfig.ServerCfg)
+func createCheckAPI(gsrv *grpc.Server, csvc *resolvcache.Service, msrv *serverd.Manager, logger yalogi.Logger) error {
+	cfgAPI := cfg.Data("service.dnsutil.resolvcheck").(*iconfig.ResolvCheckAPICfg)
+	if cfgAPI.Enable {
+		gsvc, err := ifactory.ResolvCheckAPI(cfgAPI, csvc, logger)
+		if err != nil {
+			return err
+		}
+		apicheck.RegisterServer(gsrv, gsvc)
+		msrv.Register(serverd.Service{Name: "service.dnsutil.resolvcheck"})
 	}
+	return nil
+}
+
+func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
+	cfgServer := cfg.Data("server").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err == cfactory.ErrURIServerExists {
 		return gsrv, nil
@@ -105,17 +119,11 @@ func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 	return gsrv, nil
 }
 
-func createCheckAPI(gsrv *grpc.Server, csvc *resolvcache.Service, logger yalogi.Logger) error {
-	gsvc, err := ifactory.ResolvCheckAPI(csvc, logger)
-	if err != nil {
-		return err
+func createCollectSrv(msrv *serverd.Manager) (*grpc.Server, error) {
+	cfgServer := cfg.Data("server.collect").(*cconfig.ServerCfg)
+	if cfgServer.Empty() {
+		cfgServer = cfg.Data("server").(*cconfig.ServerCfg)
 	}
-	apicheck.RegisterServer(gsrv, gsvc)
-	return nil
-}
-
-func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
-	cfgServer := cfg.Data("server").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err == cfactory.ErrURIServerExists {
 		return gsrv, nil
@@ -127,7 +135,7 @@ func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     fmt.Sprintf("server.[%s]", cfgServer.ListenURI),
+		Name:     fmt.Sprintf("server.collect.[%s]", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,

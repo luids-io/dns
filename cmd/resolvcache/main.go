@@ -95,16 +95,17 @@ func main() {
 	if err != nil {
 		logger.Fatalf("creating check server: %v", err)
 	}
-	err = createCheckAPI(fgsrv, cache, logger)
+	err = createCheckAPI(fgsrv, cache, msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating check api: %v", err)
 	}
+
 	// create collector server
 	cgsrv, err := createCollectSrv(msrv)
 	if err != nil {
 		logger.Fatalf("creating collect server: %v", err)
 	}
-	err = createCollectAPI(cgsrv, cache, logger)
+	err = createCollectAPI(cgsrv, cache, msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating collect api: %v", err)
 	}
