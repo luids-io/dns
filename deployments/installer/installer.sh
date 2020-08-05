@@ -386,7 +386,9 @@ EOF
 		{ cat > $ETC_DIR/$NAME/resolvcache.toml <<EOF
 [resolvcache]
 expire   = 7200
-logfile  = "${VAR_DIR}/${NAME}/cache.log"
+
+[resolvcache.trace]
+file  = "${VAR_DIR}/${NAME}/cache-trace.log"
 
 [resolvcache.dump]
 file  = "${CACHE_DIR}/${NAME}/cache-dump.log"
