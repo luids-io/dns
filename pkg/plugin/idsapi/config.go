@@ -23,7 +23,7 @@ type Config struct {
 // DefaultConfig returns a Config with default values
 func DefaultConfig() Config {
 	return Config{
-		ConfigFiles: []string{"/etc/luids/services.json"},
+		ConfigFiles: []string{"/etc/luids/apiservices.json"},
 	}
 }
 
