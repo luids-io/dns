@@ -12,35 +12,36 @@ endif
 NAME:=dns
 COMMANDS=ludns resolvcache resolvcheck resolvcollect
 VERSION=$(shell git describe --match 'v[0-9]*' --dirty='.m' --always)
-LINUX_ARCH:=amd64 arm arm64 ppc64le s390x
-PLATFORMS:=$(subst $(SPACE),$(COMMA),$(foreach arch,$(LINUX_ARCH),linux/$(arch)))
+LINUX_ARCH:=amd64 arm arm64
+FREEBSD_ARCH:=amd64
+OPENBSD_ARCH:=amd64
+WINDOWS_ARCH:=amd64
+DARWIN_ARCH:=amd64
 
 all:
 	@echo Use the 'release' target to build a release.
 
-release: build tar
+release: build tar installer
 
 .PHONY: build
 build:
 	@echo Cleaning old builds
 	@rm -rf build && mkdir build
-	@echo Building: darwin/amd64 - $(VERSION)
-	mkdir -p build/darwin/amd64
-	for cmd in $(COMMANDS); do \
-		$(MAKE) release COMMAND=$$cmd BINARY=build/darwin/amd64/$${cmd} \
-			SYSTEM="GOOS=darwin GOARCH=amd64" CHECKS="" BUILDOPTS="" ;\
+	@echo Building: freebsd/$(FREEBSD_ARCH) - $(VERSION) ;\
+	for arch in $(FREEBSD_ARCH); do \
+		mkdir -p build/freebsd/$$arch ; \
+		for cmd in $(COMMANDS); do \
+		$(MAKE) release COMMAND=$$cmd BINARY=build/freebsd/$${arch}/$${cmd} \
+			SYSTEM="GOOS=freebsd GOARCH=$$arch" CHECKS="" BUILDOPTS="" ;\
+		done ; \
 	done
-	@echo Building: windows/amd64 - $(VERSION)
-	mkdir -p build/windows/amd64
-	for cmd in $(COMMANDS); do \
-		$(MAKE) release COMMAND=$$cmd BINARY=build/windows/amd64/$${cmd}.exe \
-			SYSTEM="GOOS=windows GOARCH=amd64" CHECKS="" BUILDOPTS="" ;\
-	done
-	@echo Building: linux/mips - $(VERSION)
-	mkdir -p build/linux/mips
-	for cmd in $(COMMANDS); do \
-		$(MAKE) release COMMAND=$$cmd BINARY=build/linux/mips/$${cmd} \
-			SYSTEM="GOOS=linux GOARCH=mips" CHECKS="" BUILDOPTS="" ;\
+	@echo Building: openbsd/$(OPENBSD_ARCH) - $(VERSION) ;\
+	for arch in $(OPENBSD_ARCH); do \
+		mkdir -p build/openbsd/$$arch ; \
+		for cmd in $(COMMANDS); do \
+		$(MAKE) release COMMAND=$$cmd BINARY=build/openbsd/$${arch}/$${cmd} \
+			SYSTEM="GOOS=openbsd GOARCH=$$arch" CHECKS="" BUILDOPTS="" ;\
+		done ; \
 	done
 	@echo Building: linux/$(LINUX_ARCH) - $(VERSION) ;\
 	for arch in $(LINUX_ARCH); do \
@@ -50,17 +51,48 @@ build:
 			SYSTEM="GOOS=linux GOARCH=$$arch" CHECKS="" BUILDOPTS="" ;\
 		done ; \
 	done
+	@echo Building: darwin/$(DARWIN_ARCH) - $(VERSION) ;\
+	for arch in $(DARWIN_ARCH); do \
+		mkdir -p build/darwin/$$arch ; \
+		for cmd in $(COMMANDS); do \
+		$(MAKE) release COMMAND=$$cmd BINARY=build/darwin/$${arch}/$${cmd} \
+			SYSTEM="GOOS=darwin GOARCH=$$arch" CHECKS="" BUILDOPTS="" ;\
+		done ; \
+	done
+	@echo Building: windows/$(WINDOWS_ARCH) - $(VERSION) ;\
+	for arch in $(WINDOWS_ARCH); do \
+		mkdir -p build/windows/$$arch ; \
+		for cmd in $(COMMANDS); do \
+		$(MAKE) release COMMAND=$$cmd BINARY=build/windows/$${arch}/$${cmd} \
+			SYSTEM="GOOS=windows GOARCH=$$arch" CHECKS="" BUILDOPTS="" ;\
+		done ; \
+	done
+
 
 .PHONY: tar
 tar:
 	@echo Cleaning old releases
 	@rm -rf release && mkdir release
-	tar -zcf release/$(NAME)_$(VERSION)_darwin_amd64.tgz -C build/darwin/amd64 .
-	tar -zcf release/$(NAME)_$(VERSION)_windows_amd64.tgz -C build/windows/amd64 .
-	tar -zcf release/$(NAME)_$(VERSION)_linux_mips.tgz -C build/linux/mips .
 	for arch in $(LINUX_ARCH); do \
 		tar -zcf release/$(NAME)_$(VERSION)_linux_$$arch.tgz -C build/linux/$$arch . ;\
 	done
+	for arch in $(FREEBSD_ARCH); do \
+		tar -zcf release/$(NAME)_$(VERSION)_freebsd_$$arch.tgz -C build/freebsd/$$arch . ;\
+	done
+	for arch in $(OPENBSD_ARCH); do \
+		tar -zcf release/$(NAME)_$(VERSION)_openbsd_$$arch.tgz -C build/openbsd/$$arch . ;\
+	done
+	for arch in $(DARWIN_ARCH); do \
+		tar -zcf release/$(NAME)_$(VERSION)_darwin_$$arch.tgz -C build/darwin/$$arch . ;\
+	done
+	for arch in $(WINDOWS_ARCH); do \
+		tar -zcf release/$(NAME)_$(VERSION)_windows_$$arch.tgz -C build/windows/$$arch . ;\
+	done
+
+.PHONY: installer
+installer:
+	cp deployments/installer/installer.sh release/installer.sh
+	sed -i 's/RELEASE="RELEASE"/RELEASE="$(VERSION)"/' release/installer.sh
 
 .PHONY: version
 version:

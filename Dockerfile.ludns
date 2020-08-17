@@ -40,7 +40,7 @@ RUN adduser -D -g 'luids' ludns
 
 # Import the user and group files from the builder.
 COPY --from=build-env /app/bin/ludns /bin/ludns
-COPY --from=build-env /app/configs/docker/services.json /etc/luids/
+COPY --from=build-env /app/configs/docker/apiservices.json /etc/luids/
 COPY --from=build-env /app/configs/docker/ludns/* /etc/luids/dns/
 
 # Set capabilities

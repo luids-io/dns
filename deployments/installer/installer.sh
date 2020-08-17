@@ -2,7 +2,7 @@
 
 ## Configuration variables. 
 NAME="dns"
-RELEASE="v0.0.1"
+RELEASE="RELEASE"
 ARCH="amd64"
 
 ## Base dirs
@@ -370,7 +370,7 @@ create_service_config() {
     #idsevent
     #xlisthole
     #resolvcache
-	#resolvarchive
+    #resolvarchive
     forward . 8.8.8.8 8.8.4.4
 }
 EOF
