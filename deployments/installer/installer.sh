@@ -338,11 +338,11 @@ create_base_config() {
 	fi
 
 	## create files
-	if [ ! -f $ETC_DIR/services.json ]; then
-		log "creating $ETC_DIR/services.json"
-		echo "[ ]" > $ETC_DIR/services.json
+	if [ ! -f $ETC_DIR/apiservices.json ]; then
+		log "creating $ETC_DIR/apiservices.json"
+		echo "[ ]" > $ETC_DIR/apiservices.json
 	else
-		log "$ETC_DIR/services.json already exists"
+		log "$ETC_DIR/apiservices.json already exists"
 	fi
 
 	step_ok
