@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// creates main server manager instance
-	msrv := serverd.New(serverd.SetLogger(logger))
+	msrv := serverd.New(Program, serverd.SetLogger(logger))
 
 	// create cache logger
 	trace, err := createTraceLogger(msrv, logger)
