@@ -2,11 +2,6 @@ FROM golang:1.14-alpine as build-env
 
 # Arguments for build
 ARG arch=amd64
-# Set github user and token for private repositories
-ARG github_user
-ENV github_user=$github_user
-ARG github_token
-ENV github_token=$github_token
 
 # Install git and certificates
 RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certificates
@@ -18,11 +13,6 @@ RUN adduser -D -g 'luids' ludns \
     && chown -R ludns /var/lib/luids/dns
 
 WORKDIR /app
-
-## config git
-RUN if [ ! -z "$github_user" ]; then git config --global \
-    url."https://${github_user}:${github_token}@github.com/".insteadOf \
-    "https://github.com/"; fi
 
 ## dependences
 COPY go.mod .
