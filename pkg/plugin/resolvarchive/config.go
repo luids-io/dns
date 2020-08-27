@@ -11,7 +11,7 @@ import (
 	"github.com/coredns/coredns/plugin"
 )
 
-// Config stores configuration for the plugin
+// Config stores configuration for the plugin.
 type Config struct {
 	Service string
 	Buffer  int
@@ -19,7 +19,7 @@ type Config struct {
 	ServerIP net.IP
 }
 
-// DefaultConfig returns a Config with default values
+// DefaultConfig returns a Config with default values.
 func DefaultConfig() Config {
 	return Config{
 		Service: "resolvarchive",
@@ -27,7 +27,7 @@ func DefaultConfig() Config {
 	}
 }
 
-// Validate configuration
+// Validate configuration.
 func (cfg Config) Validate() error {
 	if cfg.Service == "" {
 		return errors.New("service empty")
@@ -38,7 +38,7 @@ func (cfg Config) Validate() error {
 	return nil
 }
 
-// Load configuration from controller
+// Load configuration from controller.
 func (cfg *Config) Load(c *caddy.Controller) error {
 	//parse configuration
 	i := 0

@@ -11,37 +11,37 @@ import (
 	"github.com/luids-io/core/reason"
 )
 
-// RuleSet stores the policy items
+// RuleSet stores the policy items.
 type RuleSet struct {
 	Domain  Rules
 	IP      Rules
 	OnError ActionInfo
 }
 
-// Rules struct groups rules for each item in policy
+// Rules struct groups rules for each item in policy.
 type Rules struct {
 	Listed   Rule
 	Unlisted Rule
 	Merge    bool
 }
 
-// Rule stores rule information
+// Rule stores rule information.
 type Rule struct {
 	Action ActionInfo
 	Event  EventInfo
 	Log    bool
 }
 
-// ActionInfo stores dns action information
+// ActionInfo stores dns action information.
 type ActionInfo struct {
 	Type ActionType
 	Data string
 }
 
-// ActionType defines actions for the rules
+// ActionType defines actions for the rules.
 type ActionType int
 
-//ActionType values
+//ActionType values.
 const (
 	SendNXDomain ActionType = iota
 	SendFixedIP4
@@ -50,13 +50,13 @@ const (
 	CheckIP
 )
 
-// EventInfo stores event information in rules
+// EventInfo stores event information in rules.
 type EventInfo struct {
 	Raise bool
 	Level event.Level
 }
 
-// Validate validates ruleset
+// Validate validates ruleset.
 func (r RuleSet) Validate() error {
 	err := r.Domain.Listed.Validate()
 	if err != nil {
@@ -86,7 +86,7 @@ func (r RuleSet) Validate() error {
 	return nil
 }
 
-// Validate validates a rule
+// Validate validates a rule.
 func (r Rule) Validate() error {
 	if r.Action.Type == SendFixedIP4 {
 		if !isIPv4(r.Action.Data) {
@@ -128,7 +128,7 @@ func (r *Rule) applyPolicy(p reason.Policy) error {
 	return nil
 }
 
-// Merge extracted reason
+// Merge extracted reason.
 func (r *Rule) Merge(s string) error {
 	p, _, err := reason.ExtractPolicy(s)
 	if err != nil {
@@ -141,7 +141,7 @@ func (r *Rule) Merge(s string) error {
 	return nil
 }
 
-// ToRule returns rule information from string
+// ToRule returns rule information from string.
 func ToRule(s string) (Rule, error) {
 	var rule Rule
 	var err error
@@ -178,7 +178,7 @@ func ToRule(s string) (Rule, error) {
 	return rule, nil
 }
 
-// ToActionInfo returns an action from string
+// ToActionInfo returns an action from string.
 func ToActionInfo(s string) (ActionInfo, error) {
 	var r ActionInfo
 	switch strings.ToLower(s) {
@@ -207,7 +207,7 @@ func ToActionInfo(s string) (ActionInfo, error) {
 	return r, errors.New("invalid action")
 }
 
-// ToEventInfo returns event information from string
+// ToEventInfo returns event information from string.
 func ToEventInfo(s string) (EventInfo, error) {
 	var r EventInfo
 	var err error

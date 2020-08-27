@@ -1,5 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
+// Package resolvcache implements a dnsutil.ResolvCache service interface.
 package resolvcache
 
 import (
@@ -30,13 +31,13 @@ type Service struct {
 	close   chan struct{}
 }
 
-// TraceLogger interface defines collection and query logger interface
+// TraceLogger interface defines collection and query logger interface.
 type TraceLogger interface {
 	LogCollect(*peer.Peer, time.Time, net.IP, string, []net.IP) error
 	LogCheck(peer *peer.Peer, ts time.Time, client, resolved net.IP, name string, resp dnsutil.CacheResponse) error
 }
 
-// Option is used for component configuration
+// Option is used for component configuration.
 type Option func(*options)
 
 type options struct {
@@ -52,7 +53,7 @@ var defaultOptions = options{
 	cleanInterval: 1 * time.Minute,
 }
 
-// DumpCache sets interval and filename for dump
+// DumpCache option sets interval and filename for dump.
 func DumpCache(d time.Duration, fname string) Option {
 	return func(o *options) {
 		if d > 0 {
@@ -62,14 +63,14 @@ func DumpCache(d time.Duration, fname string) Option {
 	}
 }
 
-// SetTraceLogger sets a collection and query logger
+// SetTraceLogger option sets a collection and query logger.
 func SetTraceLogger(l TraceLogger) Option {
 	return func(o *options) {
 		o.trace = l
 	}
 }
 
-// SetLogger option allows set a custom logger
+// SetLogger option allows set a custom logger.
 func SetLogger(l yalogi.Logger) Option {
 	return func(o *options) {
 		if l != nil {
@@ -78,7 +79,7 @@ func SetLogger(l yalogi.Logger) Option {
 	}
 }
 
-// NewService creates a new Service
+// NewService creates a new Service.
 func NewService(c *Cache, opt ...Option) *Service {
 	opts := defaultOptions
 	for _, o := range opt {
@@ -93,7 +94,7 @@ func NewService(c *Cache, opt ...Option) *Service {
 	return s
 }
 
-// Collect implements dnsutil.ResolvCollector
+// Collect implements dnsutil.ResolvCollector.
 func (s *Service) Collect(ctx context.Context, client net.IP, name string, resolved []net.IP) error {
 	if !s.started {
 		return dnsutil.ErrUnavailable
@@ -113,7 +114,7 @@ func (s *Service) Collect(ctx context.Context, client net.IP, name string, resol
 	return err
 }
 
-// Check implements dnsutil.ResolvChecker
+// Check implements dnsutil.ResolvChecker.
 func (s *Service) Check(ctx context.Context, client, resolved net.IP, name string) (dnsutil.CacheResponse, error) {
 	if !s.started {
 		return dnsutil.CacheResponse{}, dnsutil.ErrUnavailable
@@ -132,7 +133,7 @@ func (s *Service) Check(ctx context.Context, client, resolved net.IP, name strin
 	return resp, nil
 }
 
-// Uptime returns cache information
+// Uptime returns cache information.
 func (s *Service) Uptime(ctx context.Context) (time.Time, time.Duration, error) {
 	if !s.started {
 		return time.Time{}, 0, dnsutil.ErrUnavailable
@@ -140,7 +141,7 @@ func (s *Service) Uptime(ctx context.Context) (time.Time, time.Duration, error) 
 	return s.cache.Flushed(), s.cache.Expires(), nil
 }
 
-// Start service cache
+// Start service cache.
 func (s *Service) Start() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -162,7 +163,7 @@ func (s *Service) Start() error {
 	return nil
 }
 
-// Shutdown service cache
+// Shutdown service cache.
 func (s *Service) Shutdown() {
 	s.mu.Lock()
 	defer s.mu.Unlock()

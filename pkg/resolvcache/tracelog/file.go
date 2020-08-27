@@ -1,5 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
+// Package tracelog implements an asyncronous resolvcache.TraceLogger.
 package tracelog
 
 import (
@@ -24,7 +25,7 @@ type File struct {
 	waitSig  chan struct{}
 }
 
-// BufferSize for the logger
+// BufferSize for the logger.
 const BufferSize = 512
 
 type opType int
@@ -78,7 +79,7 @@ func (data *logData) String() string {
 	return fmt.Sprintf("%s,unknown,%s\n", tstamp, peerinfo)
 }
 
-// NewFile creates a new logger
+// NewFile creates a new logger.
 func NewFile(fname string) (*File, error) {
 	file := &File{fname: fname}
 	if err := file.init(); err != nil {
@@ -87,7 +88,7 @@ func NewFile(fname string) (*File, error) {
 	return file, nil
 }
 
-// LogCollect implements resolvcache.TraceLogger
+// LogCollect implements resolvcache.TraceLogger.
 func (f *File) LogCollect(peer *peer.Peer, ts time.Time, client net.IP, name string, resolved []net.IP) error {
 	if f.closed {
 		return errors.New("tracelog: log is closed")
@@ -103,7 +104,7 @@ func (f *File) LogCollect(peer *peer.Peer, ts time.Time, client net.IP, name str
 	return nil
 }
 
-// LogCheck implements resolvcache.TraceLogger
+// LogCheck implements resolvcache.TraceLogger.
 func (f *File) LogCheck(peer *peer.Peer, ts time.Time, client, resolved net.IP, name string, resp dnsutil.CacheResponse) error {
 	if f.closed {
 		return errors.New("tracelog: log is closed")
@@ -134,7 +135,7 @@ func (f *File) init() error {
 	return nil
 }
 
-// Close logger
+// Close logger.
 func (f *File) Close() error {
 	if f.closed {
 		return errors.New("tracelog: log is closed")

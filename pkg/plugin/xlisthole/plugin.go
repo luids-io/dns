@@ -1,5 +1,7 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
+// Package xlisthole implements a CoreDNS plugin that integrates with luIDS
+// xlist.Check api and adds sinkhole functionality.
 package xlisthole
 
 import (
@@ -25,7 +27,7 @@ import (
 	"github.com/luids-io/dns/pkg/plugin/idsevent"
 )
 
-// Plugin is the main struct of the plugin
+// Plugin is the main struct of the plugin.
 type Plugin struct {
 	Next plugin.Handler
 	Fall fall.F
@@ -39,7 +41,7 @@ type Plugin struct {
 	started bool
 }
 
-// New returns a new Plugin
+// New returns a new Plugin.
 func New(cfg Config) (*Plugin, error) {
 	err := cfg.Validate()
 	if err != nil {
@@ -54,7 +56,7 @@ func New(cfg Config) (*Plugin, error) {
 	return p, nil
 }
 
-// RegisterMetrics register metrics in controller
+// RegisterMetrics register metrics in controller.
 func (p *Plugin) RegisterMetrics(c *caddy.Controller) {
 	p.metrics.register(c)
 }
@@ -70,7 +72,7 @@ func (p Plugin) Health() bool {
 	return p.svc.Ping() == nil
 }
 
-// Start plugin
+// Start plugin.
 func (p *Plugin) Start() error {
 	if p.started {
 		return errors.New("plugin started")
@@ -88,7 +90,7 @@ func (p *Plugin) Start() error {
 	return nil
 }
 
-// Shutdown plugin
+// Shutdown plugin.
 func (p *Plugin) Shutdown() error {
 	if !p.started {
 		return nil

@@ -9,7 +9,7 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
-// Archiver is an archiver with an channel buffer
+// Archiver is an archiver with an channel buffer.
 type Archiver struct {
 	logger yalogi.Logger
 	//internal buffered data channel
@@ -21,7 +21,7 @@ type Archiver struct {
 	sigclose chan struct{}
 }
 
-// NewArchiver returns a new instance
+// NewArchiver returns a new instance.
 func NewArchiver(client dnsutil.Archiver, bufsize int, logger yalogi.Logger) *Archiver {
 	a := &Archiver{
 		logger:   logger,
@@ -33,14 +33,14 @@ func NewArchiver(client dnsutil.Archiver, bufsize int, logger yalogi.Logger) *Ar
 	return a
 }
 
-// SaveResolv data in an asyncronous mode
+// SaveResolv data in an asyncronous mode.
 func (a *Archiver) SaveResolv(data dnsutil.ResolvData) {
 	if !a.closed {
 		a.dataCh <- data
 	}
 }
 
-// Close archiver
+// Close archiver.
 func (a *Archiver) Close() error {
 	if a.closed {
 		return nil

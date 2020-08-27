@@ -13,21 +13,21 @@ import (
 	"github.com/luids-io/common/util"
 )
 
-// Config stores configuration for the plugin
+// Config stores configuration of the plugin.
 type Config struct {
 	ConfigDirs  []string
 	ConfigFiles []string
 	CertsDir    string
 }
 
-// DefaultConfig returns a Config with default values
+// DefaultConfig returns a Config with default values.
 func DefaultConfig() Config {
 	return Config{
 		ConfigFiles: []string{"/etc/luids/apiservices.json"},
 	}
 }
 
-// Validate configuration
+// Validate configuration.
 func (cfg Config) Validate() error {
 	empty := true
 	for _, file := range cfg.ConfigFiles {
@@ -54,7 +54,7 @@ func (cfg Config) Validate() error {
 	return nil
 }
 
-// Load configuration from controller
+// Load configuration from controller.
 func (cfg *Config) Load(c *caddy.Controller) error {
 	//parse configuration
 	i := 0

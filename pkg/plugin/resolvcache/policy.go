@@ -10,25 +10,25 @@ import (
 	"github.com/luids-io/api/event"
 )
 
-// RuleSet stores the policy rules
+// RuleSet stores the policy rules.
 type RuleSet struct {
 	MaxClientRequests Rule
 	MaxNamesResolved  Rule
 }
 
-// Rule information
+// Rule information.
 type Rule struct {
 	Event EventInfo
 	Log   bool
 }
 
-// EventInfo stores event information
+// EventInfo stores event information.
 type EventInfo struct {
 	Raise bool
 	Level event.Level
 }
 
-// ToRule returns rule information from string
+// ToRule returns rule information from string.
 func ToRule(s string) (Rule, error) {
 	var rule Rule
 	var err error
@@ -60,7 +60,7 @@ func ToRule(s string) (Rule, error) {
 	return rule, nil
 }
 
-// ToEventInfo returns event information from string
+// ToEventInfo returns event information from string.
 func ToEventInfo(value string) (EventInfo, error) {
 	var r EventInfo
 	var err error

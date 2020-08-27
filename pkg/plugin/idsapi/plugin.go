@@ -1,5 +1,6 @@
 // Copyright 2020 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
+// Package idsapi implements a CoreDNS plugin that loads luIDS api services.
 package idsapi
 
 import (
@@ -12,7 +13,7 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
-//Plugin is the main struct of the plugin
+//Plugin is the main struct of the plugin.
 type Plugin struct {
 	logger yalogi.Logger
 	cfg    Config
@@ -21,7 +22,7 @@ type Plugin struct {
 	started bool
 }
 
-// New returns a new Plugin
+// New returns a new Plugin.
 func New(cfg Config) (*Plugin, error) {
 	err := cfg.Validate()
 	if err != nil {
@@ -34,7 +35,7 @@ func New(cfg Config) (*Plugin, error) {
 	return p, nil
 }
 
-// Start plugin
+// Start plugin.
 func (p *Plugin) Start() error {
 	if p.started {
 		return errors.New("plugin started")
@@ -48,10 +49,10 @@ func (p *Plugin) Start() error {
 	return nil
 }
 
-// Name implements plugin interface
+// Name implements plugin interface.
 func (p Plugin) Name() string { return "idsapi" }
 
-// Health implements plugin health interface
+// Health implements plugin health interface.
 func (p Plugin) Health() bool {
 	if !p.started {
 		return false
@@ -59,7 +60,7 @@ func (p Plugin) Health() bool {
 	return p.apisvc.Ping() == nil
 }
 
-// Shutdown plugin
+// Shutdown plugin.
 func (p *Plugin) Shutdown() error {
 	if !p.started {
 		return nil
@@ -68,7 +69,7 @@ func (p *Plugin) Shutdown() error {
 	return p.apisvc.CloseAll()
 }
 
-// GetDiscover returns discover created
+// GetDiscover returns discover created.
 func (p *Plugin) GetDiscover() apiservice.Discover {
 	return p.apisvc
 }
@@ -76,12 +77,12 @@ func (p *Plugin) GetDiscover() apiservice.Discover {
 // singleton instance
 var discover apiservice.Discover
 
-// SetDiscover main instance
+// SetDiscover main instance.
 func SetDiscover(d apiservice.Discover) {
 	discover = d
 }
 
-// GetService returns service using main instance
+// GetService returns service using main instance.
 func GetService(id string) (apiservice.Service, bool) {
 	if discover == nil {
 		return nil, false

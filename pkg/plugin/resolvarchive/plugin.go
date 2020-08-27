@@ -1,5 +1,7 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
+// Package resolvarchive implements a CoreDNS plugin that integrates with
+// luIDS dnsutil.Archive api.
 package resolvarchive
 
 import (
@@ -23,7 +25,7 @@ import (
 	"github.com/luids-io/dns/pkg/plugin/idsapi"
 )
 
-//Plugin is the main struct of the plugin
+//Plugin is the main struct of the plugin.
 type Plugin struct {
 	Next plugin.Handler
 	Fall fall.F
@@ -35,7 +37,7 @@ type Plugin struct {
 	started  bool
 }
 
-// New returns a new Plugin
+// New returns a new Plugin.
 func New(cfg Config) (*Plugin, error) {
 	err := cfg.Validate()
 	if err != nil {
@@ -48,7 +50,7 @@ func New(cfg Config) (*Plugin, error) {
 	return p, nil
 }
 
-// Start plugin
+// Start plugin.
 func (p *Plugin) Start() error {
 	if p.started {
 		return errors.New("plugin started")
@@ -117,10 +119,10 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	return rc, err
 }
 
-// Name implements plugin interface
+// Name implements plugin interface.
 func (p Plugin) Name() string { return "resolvarchive" }
 
-// Health implements plugin health interface
+// Health implements plugin health interface.
 func (p Plugin) Health() bool {
 	if !p.started {
 		return false
@@ -128,7 +130,7 @@ func (p Plugin) Health() bool {
 	return p.svc.Ping() == nil
 }
 
-// Shutdown plugin
+// Shutdown plugin.
 func (p *Plugin) Shutdown() error {
 	if !p.started {
 		return nil

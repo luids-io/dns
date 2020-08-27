@@ -11,13 +11,13 @@ import (
 	"github.com/coredns/coredns/plugin"
 )
 
-// Config stores configuration for the plugin
+// Config stores configuration for the plugin.
 type Config struct {
 	Service string
 	Policy  RuleSet
 }
 
-// DefaultConfig returns a Config with default values
+// DefaultConfig returns a Config with default values.
 func DefaultConfig() Config {
 	return Config{
 		Service: "xlisthole",
@@ -33,7 +33,7 @@ func DefaultConfig() Config {
 	}
 }
 
-// Validate configuration
+// Validate configuration.
 func (cfg Config) Validate() error {
 	if cfg.Service == "" {
 		return errors.New("service empty")
@@ -45,7 +45,7 @@ func (cfg Config) Validate() error {
 	return nil
 }
 
-// Load configuration from controller
+// Load configuration from controller.
 func (cfg *Config) Load(c *caddy.Controller) error {
 	//parse configuration
 	i := 0

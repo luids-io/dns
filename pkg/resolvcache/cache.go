@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Cache implements a resolv cache in memory
+// Cache implements a resolv cache in memory.
 type Cache struct {
 	expires time.Duration
 	limits  Limits
@@ -21,14 +21,14 @@ type Cache struct {
 	flushed time.Time
 }
 
-// Limits stores max values for cache
+// Limits stores max values for cache.
 type Limits struct {
 	BlockSize       int
 	MaxBlocksClient int
 	MaxNamesNode    int
 }
 
-// DefaultLimits returns limits
+// DefaultLimits returns limits.
 func DefaultLimits() Limits {
 	return Limits{
 		BlockSize:       1024,
@@ -37,7 +37,7 @@ func DefaultLimits() Limits {
 	}
 }
 
-// NewCache creates a new Cache
+// NewCache creates a new Cache.
 func NewCache(expires time.Duration, limits Limits) *Cache {
 	now := time.Now()
 	o := &Cache{
@@ -50,7 +50,7 @@ func NewCache(expires time.Duration, limits Limits) *Cache {
 	return o
 }
 
-// Set data
+// Set data.
 func (o *Cache) Set(ts time.Time, client net.IP, name string, resolved []net.IP) error {
 	// gets client data
 	c := o.getClientBlock(client)
@@ -64,7 +64,7 @@ func (o *Cache) Set(ts time.Time, client net.IP, name string, resolved []net.IP)
 	return nil
 }
 
-// Get data
+// Get data.
 func (o *Cache) Get(client, resolved net.IP, name string) (bool, time.Time) {
 	o.mu.RLock()
 	c, ok := o.clients[getIPKey(client)]
@@ -76,22 +76,22 @@ func (o *Cache) Get(client, resolved net.IP, name string) (bool, time.Time) {
 	return result, last
 }
 
-// Flushed returns time from last flush
+// Flushed returns time from last flush.
 func (o *Cache) Flushed() time.Time {
 	return o.flushed
 }
 
-// Cleaned returns time from last clean
+// Cleaned returns time from last clean.
 func (o *Cache) Cleaned() time.Time {
 	return o.cleaned
 }
 
-// Expires returns expiration time
+// Expires returns expiration time.
 func (o *Cache) Expires() time.Duration {
 	return o.expires
 }
 
-// Store returns store time
+// Store returns store time.
 func (o *Cache) Store() time.Time {
 	if time.Since(o.flushed) < o.expires {
 		return o.flushed
@@ -99,7 +99,7 @@ func (o *Cache) Store() time.Time {
 	return time.Now().Add(-o.expires)
 }
 
-// Flush cache
+// Flush cache.
 func (o *Cache) Flush() {
 	o.mu.Lock()
 	defer o.mu.Unlock()
@@ -109,7 +109,7 @@ func (o *Cache) Flush() {
 	o.flushed = time.Now()
 }
 
-// Clean expired items from cache
+// Clean expired items from cache.
 func (o *Cache) Clean() {
 	o.mu.RLock()
 	//gets a copy of pointers to clientdata
@@ -125,7 +125,7 @@ func (o *Cache) Clean() {
 	o.cleaned = time.Now()
 }
 
-// Dump cache content to writer
+// Dump cache content to writer.
 func (o *Cache) Dump(out io.Writer) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
