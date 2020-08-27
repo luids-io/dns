@@ -35,9 +35,9 @@ var directives = []string{
 	"health",
 	"resolvcache",
 	"resolvarchive",
+	"cache",
 	"forward",
 	"whoami",
-	"cache",
 	"startup",
 	"shutdown",
 }

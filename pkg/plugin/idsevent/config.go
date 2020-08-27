@@ -12,8 +12,9 @@ import (
 
 // Config stores configuration for the plugin
 type Config struct {
-	Service string
-	Buffer  int
+	Service  string
+	Buffer   int
+	Instance string
 }
 
 // DefaultConfig returns a Config with default values
@@ -72,6 +73,13 @@ var mapConfig = map[string]loadCfgFn{
 			return c.ArgErr()
 		}
 		cfg.Service = c.Val()
+		return nil
+	},
+	"instance": func(c *caddy.Controller, cfg *Config) error {
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+		cfg.Instance = c.Val()
 		return nil
 	},
 }

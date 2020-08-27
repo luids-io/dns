@@ -62,7 +62,7 @@ func getServiceDefs(cfg Config) ([]apiservice.ServiceDef, error) {
 	}
 	loadedDB := make([]apiservice.ServiceDef, 0)
 	for _, file := range dbFiles {
-		entries, err := apiservice.DefsFromFile(file)
+		entries, err := apiservice.ServiceDefsFromFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("loading file '%s': %v", file, err)
 		}

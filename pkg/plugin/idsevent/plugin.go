@@ -56,6 +56,9 @@ func (p *Plugin) Start() error {
 	p.buffer = notifybuffer.New(notifier, p.cfg.Buffer, notifybuffer.SetLogger(p.logger))
 	//register buffer as default event buffer
 	event.SetBuffer(p.buffer)
+	if p.cfg.Instance != "" {
+		event.SetDefaultInstance(p.cfg.Instance)
+	}
 	p.started = true
 	return nil
 }
