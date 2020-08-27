@@ -371,6 +371,7 @@ create_service_config() {
     #xlisthole
     #resolvcache
     #resolvarchive
+    #cache
     forward . 8.8.8.8 8.8.4.4
 }
 EOF

@@ -1,10 +1,11 @@
 . {
-    health
-    prometheus :9153
+    #health
+    #prometheus :9153
     #idsapi
     #idsevent
     #xlisthole
     #resolvarchive
     #resolvcache
+    #cache
     forward . {$FORWARD_DNS}
 }
