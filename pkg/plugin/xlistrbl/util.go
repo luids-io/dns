@@ -3,6 +3,7 @@
 package xlistrbl
 
 import (
+	"bytes"
 	"net"
 	"strings"
 
@@ -54,7 +55,11 @@ func getMsgReplyTxt(text string, ttl int, req *request.Request) *dns.Msg {
 	m.SetReply(req.Req)
 	m.Authoritative, m.RecursionAvailable = true, false
 	if req.QType() == dns.TypeTXT {
-		m.Answer = txt(req.Name(), []string{text}, ttl)
+		result := []string{text}
+		if len(text) > 255 {
+			result = splitSubN(text, 255)
+		}
+		m.Answer = txt(req.Name(), result, ttl)
 	}
 	return m
 }
@@ -89,4 +94,23 @@ func txt(zone string, txts []string, ttl int) []dns.RR {
 		Class: dns.ClassINET, Ttl: uint32(ttl)}
 	r.Txt = txts
 	return []dns.RR{r}
+}
+
+func splitSubN(s string, n int) []string {
+	sub := ""
+	subs := []string{}
+
+	runes := bytes.Runes([]byte(s))
+	l := len(runes)
+	for i, r := range runes {
+		sub = sub + string(r)
+		if (i+1)%n == 0 {
+			subs = append(subs, sub)
+			sub = ""
+		} else if (i + 1) == l {
+			subs = append(subs, sub)
+		}
+	}
+
+	return subs
 }
