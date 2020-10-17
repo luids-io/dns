@@ -80,14 +80,22 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
 	}
 	// fill data with query
-	data := dnsutil.ResolvData{
-		Timestamp:        time.Now(),
-		Server:           p.cfg.ServerIP,
-		Client:           net.ParseIP(req.IP()),
-		QID:              query.Id,
-		Name:             strings.TrimSuffix(req.Name(), "."),
-		CheckingDisabled: query.CheckingDisabled,
+	data := &dnsutil.ResolvData{
+		Timestamp: time.Now(),
+		Server:    p.cfg.ServerIP,
+		Client:    net.ParseIP(req.IP()),
+		QID:       query.Id,
+		Name:      strings.TrimSuffix(req.Name(), "."),
 	}
+	if req.QType() == dns.TypeAAAA {
+		data.IsIPv6 = true
+	}
+	data.QueryFlags.AuthenticatedData = query.AuthenticatedData
+	data.QueryFlags.CheckingDisabled = query.CheckingDisabled
+	if query.IsEdns0() != nil {
+		data.QueryFlags.Do = query.IsEdns0().Do()
+	}
+
 	// do resolv in next plugin
 	rrw := dnstest.NewRecorder(writer)
 	rc, err := plugin.NextOrFailure(p.Name(), p.Next, ctx, rrw, query)
@@ -103,14 +111,14 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	data.ReturnCode = rc
 	if rrw.Msg != nil {
 		data.ReturnCode = rrw.Msg.Rcode
-		data.AuthenticatedData = rrw.Msg.AuthenticatedData
+		data.ResponseFlags.AuthenticatedData = rrw.Msg.AuthenticatedData
 		if len(rrw.Msg.Answer) > 0 {
-			data.Resolved = make([]net.IP, 0, len(rrw.Msg.Answer))
+			data.ResolvedIPs = make([]net.IP, 0, len(rrw.Msg.Answer))
 			for _, a := range rrw.Msg.Answer {
 				if rsp, ok := a.(*dns.A); ok {
-					data.Resolved = append(data.Resolved, rsp.A)
+					data.ResolvedIPs = append(data.ResolvedIPs, rsp.A)
 				} else if rsp, ok := a.(*dns.AAAA); ok {
-					data.Resolved = append(data.Resolved, rsp.AAAA)
+					data.ResolvedIPs = append(data.ResolvedIPs, rsp.AAAA)
 				}
 			}
 		}

@@ -13,7 +13,7 @@ import (
 type Archiver struct {
 	logger yalogi.Logger
 	//internal buffered data channel
-	dataCh chan dnsutil.ResolvData
+	dataCh chan *dnsutil.ResolvData
 	//client used for archive
 	client dnsutil.Archiver
 	//control state
@@ -26,7 +26,7 @@ func NewArchiver(client dnsutil.Archiver, bufsize int, logger yalogi.Logger) *Ar
 	a := &Archiver{
 		logger:   logger,
 		client:   client,
-		dataCh:   make(chan dnsutil.ResolvData, bufsize),
+		dataCh:   make(chan *dnsutil.ResolvData, bufsize),
 		sigclose: make(chan struct{}),
 	}
 	go a.doProcess()
@@ -34,7 +34,7 @@ func NewArchiver(client dnsutil.Archiver, bufsize int, logger yalogi.Logger) *Ar
 }
 
 // SaveResolv data in an asyncronous mode.
-func (a *Archiver) SaveResolv(data dnsutil.ResolvData) {
+func (a *Archiver) SaveResolv(data *dnsutil.ResolvData) {
 	if !a.closed {
 		a.dataCh <- data
 	}
