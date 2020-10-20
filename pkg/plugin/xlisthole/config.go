@@ -5,6 +5,7 @@ package xlisthole
 import (
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/caddyserver/caddy"
@@ -15,6 +16,7 @@ import (
 type Config struct {
 	Service string
 	Policy  RuleSet
+	Exclude IPSet
 }
 
 // DefaultConfig returns a Config with default values.
@@ -82,6 +84,26 @@ var mapConfig = map[string]loadCfgFn{
 			return c.ArgErr()
 		}
 		cfg.Service = c.Val()
+		return nil
+	},
+	"exclude": func(c *caddy.Controller, cfg *Config) error {
+		args := c.RemainingArgs()
+		if len(args) == 0 {
+			return c.ArgErr()
+		}
+		for _, arg := range args {
+			_, cidr, err := net.ParseCIDR(arg)
+			if err == nil {
+				cfg.Exclude.CIDRs = append(cfg.Exclude.CIDRs, cidr)
+				continue
+			}
+			ip := net.ParseIP(arg)
+			if ip != nil {
+				cfg.Exclude.IPs = append(cfg.Exclude.IPs, ip)
+				continue
+			}
+			return c.SyntaxErr("must be an ip or cidr")
+		}
 		return nil
 	},
 	//Policy options

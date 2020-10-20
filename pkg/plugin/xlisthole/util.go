@@ -10,6 +10,34 @@ import (
 	"github.com/miekg/dns"
 )
 
+// IPSet contains ips and cidrs.
+type IPSet struct {
+	IPs   []net.IP
+	CIDRs []*net.IPNet
+}
+
+// Contains returns true if ip exists in the set.
+func (f *IPSet) Contains(ip net.IP) bool {
+	if len(f.IPs) == 0 && len(f.CIDRs) == 0 {
+		return false
+	}
+	if len(f.CIDRs) > 0 {
+		for _, lcidr := range f.CIDRs {
+			if lcidr.Contains(ip) {
+				return true
+			}
+		}
+	}
+	if len(f.IPs) > 0 {
+		for _, lip := range f.IPs {
+			if lip.Equal(ip) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func isIPv4(s string) bool {
 	ip := net.ParseIP(s)
 	if ip == nil {

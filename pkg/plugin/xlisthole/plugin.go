@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/caddyserver/caddy"
@@ -36,6 +37,7 @@ type Plugin struct {
 	logger  yalogi.Logger
 	metrics *fwmetrics
 	policy  RuleSet
+	exclude IPSet
 	svc     apiservice.Service
 	checker xlist.Checker
 	started bool
@@ -52,6 +54,7 @@ func New(cfg Config) (*Plugin, error) {
 		logger:  wlog{P: clog.NewWithPlugin("xlisthole")},
 		metrics: newMetrics(),
 		policy:  cfg.Policy,
+		exclude: cfg.Exclude,
 	}
 	return p, nil
 }
@@ -108,6 +111,11 @@ func (p *Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query 
 	//create request
 	req := request.Request{W: writer, Req: query}
 	if req.QType() != dns.TypeA && req.QType() != dns.TypeAAAA {
+		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
+	}
+	//check if client ip is excluded by config
+	clientIP := net.ParseIP(req.IP())
+	if p.exclude.Contains(clientIP) {
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
 	}
 	//get domain from request
