@@ -7,6 +7,7 @@ package idsevent
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 
@@ -23,7 +24,7 @@ type Plugin struct {
 	cfg    Config
 
 	svc     apiservice.Service
-	buffer  *notifybuffer.Buffer
+	buffer  event.NotifyBuffer
 	started bool
 }
 
@@ -55,7 +56,13 @@ func (p *Plugin) Start() error {
 		return fmt.Errorf("service '%s' is not an event notify api", p.cfg.Service)
 	}
 	//create client and buffer for async event writes
-	p.buffer = notifybuffer.New(notifier, p.cfg.Buffer, notifybuffer.SetLogger(p.logger))
+	p.buffer = notifybuffer.Notifier(notifier, p.logger)
+	if p.cfg.WaitDups > 0 && p.cfg.Buffer > 0 {
+		p.buffer = notifybuffer.NewWaitDups(p.buffer, p.cfg.Buffer, time.Duration(p.cfg.WaitDups)*time.Millisecond)
+	}
+	if p.cfg.Buffer > 0 {
+		p.buffer = notifybuffer.NewQueue(p.buffer, p.cfg.Buffer)
+	}
 	//register buffer as default event buffer
 	event.SetBuffer(p.buffer)
 	if p.cfg.Instance != "" {
