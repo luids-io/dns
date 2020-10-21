@@ -34,6 +34,7 @@ type Plugin struct {
 	cfg      Config
 	svc      apiservice.Service
 	serverIP net.IP
+	exclude  IPSet
 	archiver *Archiver
 	started  bool
 }
@@ -45,8 +46,9 @@ func New(cfg Config) (*Plugin, error) {
 		return nil, err
 	}
 	p := &Plugin{
-		cfg:    cfg,
-		logger: wlog{P: clog.NewWithPlugin("resolvarchive")},
+		cfg:     cfg,
+		exclude: cfg.Exclude,
+		logger:  wlog{P: clog.NewWithPlugin("resolvarchive")},
 	}
 	return p, nil
 }
@@ -89,11 +91,16 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	if req.QType() != dns.TypeA && req.QType() != dns.TypeAAAA {
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
 	}
+	//check if client ip is excluded by config
+	clientIP := net.ParseIP(req.IP())
+	if p.exclude.Contains(clientIP) {
+		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
+	}
 	// fill data with query
 	data := &dnsutil.ResolvData{
 		Timestamp: time.Now(),
 		Server:    p.serverIP,
-		Client:    net.ParseIP(req.IP()),
+		Client:    clientIP,
 		QID:       query.Id,
 		Name:      strings.TrimSuffix(req.Name(), "."),
 	}

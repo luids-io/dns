@@ -17,6 +17,7 @@ type Config struct {
 	Buffer  int
 	//server ip used for storage info
 	ServerIP net.IP
+	Exclude  IPSet
 }
 
 // DefaultConfig returns a Config with default values.
@@ -89,6 +90,26 @@ var mapConfig = map[string]loadCfgFn{
 			return c.Err("invalid server-ip")
 		}
 		cfg.ServerIP = ip
+		return nil
+	},
+	"exclude": func(c *caddy.Controller, cfg *Config) error {
+		args := c.RemainingArgs()
+		if len(args) == 0 {
+			return c.ArgErr()
+		}
+		for _, arg := range args {
+			_, cidr, err := net.ParseCIDR(arg)
+			if err == nil {
+				cfg.Exclude.CIDRs = append(cfg.Exclude.CIDRs, cidr)
+				continue
+			}
+			ip := net.ParseIP(arg)
+			if ip != nil {
+				cfg.Exclude.IPs = append(cfg.Exclude.IPs, ip)
+				continue
+			}
+			return c.SyntaxErr("must be an ip or cidr")
+		}
 		return nil
 	},
 }
