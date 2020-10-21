@@ -51,7 +51,10 @@ func (cfg *Config) Load(c *caddy.Controller) error {
 			for {
 				apply, ok := mapConfig[c.Val()]
 				if ok {
-					apply(c, cfg)
+					err := apply(c, cfg)
+					if err != nil {
+						return err
+					}
 				} else {
 					if c.Val() != "}" {
 						return c.Errf("unknown property '%s'", c.Val())
