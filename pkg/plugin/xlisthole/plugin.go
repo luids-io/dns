@@ -40,7 +40,14 @@ type Plugin struct {
 	exclude IPSet
 	svc     apiservice.Service
 	checker xlist.Checker
+	views   []dnsview
 	started bool
+}
+
+type dnsview struct {
+	service string
+	include IPSet
+	checker xlist.Checker
 }
 
 // New returns a new Plugin.
@@ -55,6 +62,12 @@ func New(cfg Config) (*Plugin, error) {
 		metrics: newMetrics(),
 		policy:  cfg.Policy,
 		exclude: cfg.Exclude,
+	}
+	if len(cfg.Views) > 0 {
+		p.views = make([]dnsview, 0, len(cfg.Views))
+		for _, v := range cfg.Views {
+			p.views = append(p.views, dnsview{service: v.Service, include: v.Include})
+		}
 	}
 	return p, nil
 }
@@ -89,6 +102,19 @@ func (p *Plugin) Start() error {
 	if !ok {
 		return fmt.Errorf("service '%s' is not a xlist checker api", p.cfg.Service)
 	}
+	// get service views
+	if len(p.views) > 0 {
+		for idx, view := range p.views {
+			svc, ok := idsapi.GetService(view.service)
+			if !ok {
+				return fmt.Errorf("cannot find service '%s'", view.service)
+			}
+			p.views[idx].checker, ok = svc.(xlist.Checker)
+			if !ok {
+				return fmt.Errorf("service '%s' is not a xlist checker api", view.service)
+			}
+		}
+	}
 	p.started = true
 	return nil
 }
@@ -118,36 +144,39 @@ func (p *Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query 
 	if p.exclude.Contains(clientIP) {
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
 	}
+	//get checker for client ip (if use views)
+	checker := p.getChecker(clientIP)
 	//get domain from request
 	domain := req.Name()
 	if dns.IsFqdn(domain) {
 		domain = strings.TrimSuffix(domain, ".")
 	}
 	//check in xlist
-	resp, err := p.checker.Check(ctx, domain, xlist.Domain)
+	resp, err := checker.Check(ctx, domain, xlist.Domain)
 	if err != nil {
 		//on-error
 		p.metrics.errors.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		p.logger.Warnf("error checking %s: %v", domain, err)
-		return p.dispatchAction(ctx, &req, p.policy.OnError, 0)
+		return p.dispatchAction(ctx, &req, checker, p.policy.OnError, 0)
 	}
 	// process response
 	action, ttl, err := p.processResponse(ctx, &req, domain, resp)
 	if err != nil {
 		p.metrics.errors.WithLabelValues(metrics.WithServer(ctx)).Inc()
 		p.logger.Warnf("processing response %s: %v", domain, err)
-		return p.dispatchAction(ctx, &req, p.policy.OnError, 0)
+		return p.dispatchAction(ctx, &req, checker, p.policy.OnError, 0)
 	}
 	// dispatch rule action
-	return p.dispatchAction(ctx, &req, action, ttl)
+	return p.dispatchAction(ctx, &req, checker, action, ttl)
 }
 
-func (p *Plugin) newResponseChecker(ctx context.Context, req *request.Request) *responseChecker {
+func (p *Plugin) newResponseChecker(ctx context.Context, req *request.Request, c xlist.Checker) *responseChecker {
 	return &responseChecker{
 		ResponseWriter: req.W,
 		ctx:            ctx,
 		req:            req,
 		fw:             p,
+		checker:        c,
 	}
 }
 
@@ -186,13 +215,13 @@ func (p *Plugin) processResponse(ctx context.Context, req *request.Request, doma
 	return rule.Action, resp.TTL, nil
 }
 
-func (p *Plugin) dispatchAction(ctx context.Context, req *request.Request, a ActionInfo, ttl int) (int, error) {
+func (p *Plugin) dispatchAction(ctx context.Context, req *request.Request, c xlist.Checker, a ActionInfo, ttl int) (int, error) {
 	// dispatch rule action
 	switch a.Type {
 	case ReturnValue:
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, req.W, req.Req)
 	case CheckIP:
-		respChecker := p.newResponseChecker(ctx, req)
+		respChecker := p.newResponseChecker(ctx, req, c)
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, respChecker, req.Req)
 	case SendFixedIP4:
 		m := getMsgReplyIP(a.Data, ttl, req)
@@ -204,4 +233,17 @@ func (p *Plugin) dispatchAction(ctx context.Context, req *request.Request, a Act
 		m := getMsgReplyNXDomain(req)
 		return dns.RcodeNameError, req.W.WriteMsg(m)
 	}
+}
+
+func (p *Plugin) getChecker(ip net.IP) (checker xlist.Checker) {
+	checker = p.checker
+	if len(p.views) > 0 {
+		for _, view := range p.views {
+			if view.include.Contains(ip) {
+				checker = view.checker
+				return
+			}
+		}
+	}
+	return
 }

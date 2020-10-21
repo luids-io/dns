@@ -38,6 +38,14 @@ func (f *IPSet) Contains(ip net.IP) bool {
 	return false
 }
 
+// Empty returns true if ipset is empty
+func (f *IPSet) Empty() bool {
+	if len(f.CIDRs) == 0 && len(f.IPs) == 0 {
+		return true
+	}
+	return false
+}
+
 func isIPv4(s string) bool {
 	ip := net.ParseIP(s)
 	if ip == nil {

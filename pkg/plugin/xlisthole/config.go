@@ -17,6 +17,13 @@ type Config struct {
 	Service string
 	Policy  RuleSet
 	Exclude IPSet
+	Views   []View
+}
+
+// View stores view configuration
+type View struct {
+	Service string
+	Include IPSet
 }
 
 // DefaultConfig returns a Config with default values.
@@ -44,6 +51,22 @@ func (cfg Config) Validate() error {
 	if err != nil {
 		return fmt.Errorf("invalid policy config: %v", err)
 	}
+	if len(cfg.Views) > 0 {
+		names := make(map[string]bool)
+		for _, view := range cfg.Views {
+			if view.Service == "" {
+				return errors.New("service-view service name is required")
+			}
+			_, duplicated := names[view.Service]
+			if duplicated {
+				return fmt.Errorf("service-view %s: is duplicated", view.Service)
+			}
+			names[view.Service] = true
+			if view.Include.Empty() {
+				return fmt.Errorf("service-view %s: ips or networks are required", view.Service)
+			}
+		}
+	}
 	return nil
 }
 
@@ -60,7 +83,10 @@ func (cfg *Config) Load(c *caddy.Controller) error {
 			for {
 				apply, ok := mapConfig[c.Val()]
 				if ok {
-					apply(c, cfg)
+					err := apply(c, cfg)
+					if err != nil {
+						return err
+					}
 				} else {
 					if c.Val() != "}" {
 						return c.Errf("unknown property '%s'", c.Val())
@@ -104,6 +130,30 @@ var mapConfig = map[string]loadCfgFn{
 			}
 			return c.SyntaxErr("must be an ip or cidr")
 		}
+		return nil
+	},
+	"service-view": func(c *caddy.Controller, cfg *Config) error {
+		args := c.RemainingArgs()
+		if len(args) < 2 {
+			return c.ArgErr()
+		}
+		view := View{}
+		view.Service = args[0]
+		args = args[1:]
+		for _, arg := range args {
+			_, cidr, err := net.ParseCIDR(arg)
+			if err == nil {
+				view.Include.CIDRs = append(view.Include.CIDRs, cidr)
+				continue
+			}
+			ip := net.ParseIP(arg)
+			if ip != nil {
+				view.Include.IPs = append(view.Include.IPs, ip)
+				continue
+			}
+			return c.SyntaxErr("must be an ip or cidr")
+		}
+		cfg.Views = append(cfg.Views, view)
 		return nil
 	},
 	//Policy options
