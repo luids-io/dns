@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strconv"
 
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/plugin"
@@ -18,6 +19,7 @@ type Config struct {
 	//server ip used for storage info
 	ServerIP net.IP
 	Exclude  IPSet
+	IgnoreRC []int
 }
 
 // DefaultConfig returns a Config with default values.
@@ -109,6 +111,20 @@ var mapConfig = map[string]loadCfgFn{
 				continue
 			}
 			return c.SyntaxErr("must be an ip or cidr")
+		}
+		return nil
+	},
+	"ignore-rc": func(c *caddy.Controller, cfg *Config) error {
+		args := c.RemainingArgs()
+		if len(args) == 0 {
+			return c.ArgErr()
+		}
+		for _, arg := range args {
+			rc, err := strconv.Atoi(arg)
+			if err != nil {
+				return c.SyntaxErr("must be an integer")
+			}
+			cfg.IgnoreRC = append(cfg.IgnoreRC, rc)
 		}
 		return nil
 	},

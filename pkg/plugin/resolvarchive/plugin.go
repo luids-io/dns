@@ -35,6 +35,7 @@ type Plugin struct {
 	svc      apiservice.Service
 	serverIP net.IP
 	exclude  IPSet
+	ignoreRC []int
 	archiver *Archiver
 	started  bool
 }
@@ -46,9 +47,10 @@ func New(cfg Config) (*Plugin, error) {
 		return nil, err
 	}
 	p := &Plugin{
-		cfg:     cfg,
-		exclude: cfg.Exclude,
-		logger:  wlog{P: clog.NewWithPlugin("resolvarchive")},
+		cfg:      cfg,
+		exclude:  cfg.Exclude,
+		ignoreRC: cfg.IgnoreRC,
+		logger:   wlog{P: clog.NewWithPlugin("resolvarchive")},
 	}
 	return p, nil
 }
@@ -66,6 +68,9 @@ func (p *Plugin) Start() error {
 			return err
 		}
 		p.logger.Infof("server-ip not defined, using ip address: %v", p.serverIP)
+	}
+	if len(p.ignoreRC) > 0 {
+		p.logger.Infof("ignoring return codes: %v", p.ignoreRC)
 	}
 	var ok bool
 	p.svc, ok = idsapi.GetService(p.cfg.Service)
@@ -124,6 +129,14 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	data.ReturnCode = rc
 	if rrw.Msg != nil {
 		data.ReturnCode = rrw.Msg.Rcode
+		// check if return code must be ignored
+		if len(p.ignoreRC) > 0 {
+			for _, irc := range p.ignoreRC {
+				if data.ReturnCode == irc {
+					return rc, nil
+				}
+			}
+		}
 		data.ResponseFlags.AuthenticatedData = rrw.Msg.AuthenticatedData
 		if len(rrw.Msg.Answer) > 0 {
 			data.ResolvedIPs = make([]net.IP, 0, len(rrw.Msg.Answer))
