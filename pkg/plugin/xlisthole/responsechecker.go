@@ -120,7 +120,7 @@ func (r *responseChecker) processResponses(responses []parallel.Response) (Actio
 		if rule.Event.Raise {
 			e := event.New(code, rule.Event.Level)
 			e.Set("remote", r.req.IP())
-			e.Set("query", r.req.Name())
+			e.Set("query", domainFromRequest(r.req))
 			e.Set("listed", resp.Request.Name)
 			e.Set("reason", reason.Clean(resp.Response.Reason))
 			event.Notify(e)

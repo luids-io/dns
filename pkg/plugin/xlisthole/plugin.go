@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"strings"
 
 	"github.com/caddyserver/caddy"
 	"github.com/coredns/coredns/plugin"
@@ -147,10 +146,7 @@ func (p *Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query 
 	//get checker for client ip (if use views)
 	checker := p.getChecker(clientIP)
 	//get domain from request
-	domain := req.Name()
-	if dns.IsFqdn(domain) {
-		domain = strings.TrimSuffix(domain, ".")
-	}
+	domain := domainFromRequest(&req)
 	//check in xlist
 	resp, err := checker.Check(ctx, domain, xlist.Domain)
 	if err != nil {

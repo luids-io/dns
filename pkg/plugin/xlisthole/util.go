@@ -5,6 +5,7 @@ package xlisthole
 import (
 	"net"
 	"os"
+	"strings"
 
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
@@ -110,4 +111,12 @@ func aaaa(zone string, ips []net.IP, ttl int) []dns.RR {
 		answers = append(answers, r)
 	}
 	return answers
+}
+
+func domainFromRequest(req *request.Request) (domain string) {
+	domain = req.Name()
+	if dns.IsFqdn(domain) {
+		domain = strings.TrimSuffix(domain, ".")
+	}
+	return
 }
