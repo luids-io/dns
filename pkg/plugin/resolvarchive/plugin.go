@@ -33,6 +33,7 @@ type Plugin struct {
 	logger   yalogi.Logger
 	cfg      Config
 	svc      apiservice.Service
+	serverIP net.IP
 	archiver *Archiver
 	started  bool
 }
@@ -54,6 +55,15 @@ func New(cfg Config) (*Plugin, error) {
 func (p *Plugin) Start() error {
 	if p.started {
 		return errors.New("plugin started")
+	}
+	var err error
+	p.serverIP = p.cfg.ServerIP
+	if p.serverIP == nil {
+		p.serverIP, err = externalIP4()
+		if err != nil {
+			return err
+		}
+		p.logger.Infof("server-ip not defined, using ip address: %v", p.serverIP)
 	}
 	var ok bool
 	p.svc, ok = idsapi.GetService(p.cfg.Service)
@@ -82,7 +92,7 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	// fill data with query
 	data := &dnsutil.ResolvData{
 		Timestamp: time.Now(),
-		Server:    p.cfg.ServerIP,
+		Server:    p.serverIP,
 		Client:    net.ParseIP(req.IP()),
 		QID:       query.Id,
 		Name:      strings.TrimSuffix(req.Name(), "."),
@@ -101,10 +111,6 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	rc, err := plugin.NextOrFailure(p.Name(), p.Next, ctx, rrw, query)
 	if err != nil {
 		return rc, err
-	}
-	// if no default server ip
-	if data.Server == nil {
-		data.Server = net.ParseIP(req.LocalIP())
 	}
 	// fill data with response
 	data.Duration = time.Since(data.Timestamp)
