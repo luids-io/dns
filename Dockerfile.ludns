@@ -1,7 +1,9 @@
-FROM golang:1.14-alpine as build-env
+FROM --platform=$BUILDPLATFORM golang:1.14-alpine as build-env
 
 # Arguments for build
-ARG arch=amd64
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
 
 # Install git and certificates
 RUN apk update && apk add --no-cache git make
@@ -15,7 +17,7 @@ RUN go mod download
 
 ## build
 COPY . .
-RUN make binaries SYSTEM="GOOS=linux GOARCH=${arch}"
+RUN make binaries SYSTEM="$(scripts/go-compile-args)"
 
 ## create docker
 FROM alpine

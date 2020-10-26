@@ -12,14 +12,17 @@ endif
 NAME:=dns
 COMMANDS=ludns resolvcache resolvcheck resolvcollect
 VERSION=$(shell git describe --match 'v[0-9]*' --dirty='.m' --always)
-LINUX_ARCH:=amd64 arm arm64
+LINUX_ARCH:=amd64 arm arm64 ppc64le s390x mips mips64le
 FREEBSD_ARCH:=amd64
 OPENBSD_ARCH:=amd64
 WINDOWS_ARCH:=amd64
 DARWIN_ARCH:=amd64
+GITHUB_ORG:=luids-io
+DOCKER_ORG:=luids
+DOCKER_PLATFORMS="linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7,linux/ppc64le,linux/s390x"
 
 all:
-	@echo Use the 'release' target to build a release.
+	@echo "Use the 'release' target to build and 'github-push' or 'docker-push' to publish."
 
 release: build tar installer
 
@@ -91,8 +94,41 @@ tar:
 
 .PHONY: installer
 installer:
-	cp deployments/installer/installer.sh release/installer.sh
-	sed -i 's/RELEASE="RELEASE"/RELEASE="$(VERSION)"/' release/installer.sh
+	cp deployments/installer/installer_linux.sh release/installer_linux.sh
+	sed -i 's/RELEASE="RELEASE"/RELEASE="$(VERSION)"/' release/installer_linux.sh
+
+.PHONY: docker-push
+docker-push:
+	@echo Creating docker multiplatform and pushing images
+	docker buildx build -t $(DOCKER_ORG)/ludns -t $(DOCKER_ORG)/ludns:$(VERSION) \
+	       	--platform $(DOCKER_PLATFORMS) -f Dockerfile.ludns --push  .
+	docker buildx build -t $(DOCKER_ORG)/resolvcache -t $(DOCKER_ORG)/resolvcache:$(VERSION) \
+	       	--platform $(DOCKER_PLATFORMS) -f Dockerfile.resolvcache --push  .
+	
+.PHONY: github-push
+github-push:
+	@echo Releasing: $(VERSION)
+	@$(eval RELEASE:=$(shell curl -s -d '{"tag_name": "v$(VERSION)", "name": "v$(VERSION)"}' -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/repos/$(GITHUB_ORG)/$(NAME)/releases" | grep -m 1 '"id"' | tr -cd '[[:digit:]]'))
+	@echo ReleaseID: $(RELEASE)
+	@( cd release; for asset in `ls -A *tgz installer*`; do \
+	    echo $$asset; \
+	    curl -o /dev/null -X POST \
+	      -H "Content-Type: application/gzip" \
+	      -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" \
+	      --data-binary "@$$asset" \
+	      "https://uploads.github.com/repos/$(GITHUB_ORG)/$(NAME)/releases/$(RELEASE)/assets?name=$${asset}" ; \
+	done )
+	@( cd release; for asset in `ls -A *tgz installer*`; do \
+	    sha256sum $$asset > $$asset.sha256; \
+	done )
+	@( cd release; for asset in `ls -A *sha256`; do \
+	    echo $$asset; \
+	    curl -o /dev/null -X POST \
+	      -H "Content-Type: text/plain" \
+	      -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" \
+	      --data-binary "@$$asset" \
+	      "https://uploads.github.com/repos/$(GITHUB_ORG)/$(NAME)/releases/$(RELEASE)/assets?name=$${asset}" ; \
+	done )
 
 .PHONY: version
 version:

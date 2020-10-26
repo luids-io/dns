@@ -1,0 +1,69 @@
+#!/usr/bin/env sh
+
+: ${TARGETPLATFORM=}
+: ${TARGETOS=}
+: ${TARGETARCH=}
+: ${TARGETVARIANT=}
+
+GOOS=""
+GOARCH=""
+GOARM=""
+
+if [ ! -z "$TARGETPLATFORM" ]; then
+  os="$(echo $TARGETPLATFORM | cut -d"/" -f1)"
+  arch="$(echo $TARGETPLATFORM | cut -d"/" -f2)"
+  if [ ! -z "$os" ] && [ ! -z "$arch" ]; then
+    GOOS="$os"
+    GOARCH="$arch"
+    if [ "$arch" == "arm" ]; then
+      case "$(echo $TARGETPLATFORM | cut -d"/" -f3)" in
+      "v5")
+        GOARM="5"
+        ;;
+      "v6")
+        GOARM="6"
+        ;;
+      *)
+        GOARM="7"
+        ;;
+      esac
+    fi
+  fi
+fi
+
+if [ ! -z "$TARGETOS" ]; then
+  GOOS="$TARGETOS"
+fi
+
+if [ ! -z "$TARGETARCH" ]; then
+  GOARCH="$TARGETARCH"
+fi
+
+if [ ! -z "$TARGETVARIANT" ]; then
+  if [ "$GOARCH" == "arm" ]; then
+    case "$TARGETVARIANT" in
+    "v5")
+      GOARM="5"
+      ;;
+    "v6")
+      GOARM="6"
+      ;;
+    *)
+      GOARM="7"
+      ;;
+    esac
+  fi
+fi
+
+OUTPUT=""
+if [ ! -z "$GOOS" ]; then
+  OUTPUT="$OUTPUT GOOS=$GOOS"
+fi
+if [ ! -z "$GOARCH" ]; then
+  OUTPUT="$OUTPUT GOARCH=$GOARCH"
+fi
+if [ ! -z "$GOARM" ]; then
+  OUTPUT="$OUTPUT GOARM=$GOARM"
+fi
+
+echo -n "$OUTPUT"
