@@ -103,15 +103,23 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	if rc != dns.RcodeSuccess || err != nil {
 		return rc, err
 	}
-	// gets IPs from answer
+	// gets IPs and CNAMEs from answer
 	var resolved []net.IP
+	var cnames []string
 	if rrw.Msg != nil && len(rrw.Msg.Answer) > 0 {
 		resolved = make([]net.IP, 0, len(rrw.Msg.Answer))
+		cnames = make([]string, 0, len(rrw.Msg.Answer))
 		for _, a := range rrw.Msg.Answer {
 			if rsp, ok := a.(*dns.A); ok {
 				resolved = append(resolved, rsp.A)
 			} else if rsp, ok := a.(*dns.AAAA); ok {
 				resolved = append(resolved, rsp.AAAA)
+			} else if rsp, ok := a.(*dns.CNAME); ok {
+				target := rsp.Target
+				if dns.IsFqdn(target) {
+					target = strings.TrimSuffix(target, ".")
+				}
+				cnames = append(cnames, target)
 			}
 		}
 	}
@@ -128,13 +136,13 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 			return rc, err
 		}
 		// collect data
-		p.doCollect(client, name, resolved)
+		p.doCollect(client, name, resolved, cnames)
 	}
 	return rc, err
 }
 
-func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP) {
-	err := p.collector.Collect(context.Background(), client, name, resolved)
+func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP, cnames []string) {
+	err := p.collector.Collect(context.Background(), client, name, resolved, cnames)
 	if err != nil {
 		//apply policy management error
 		switch err {

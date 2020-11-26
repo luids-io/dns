@@ -33,7 +33,7 @@ type Service struct {
 
 // TraceLogger interface defines collection and query logger interface.
 type TraceLogger interface {
-	LogCollect(*peer.Peer, time.Time, net.IP, string, []net.IP) error
+	LogCollect(*peer.Peer, time.Time, net.IP, string, []net.IP, []string) error
 	LogCheck(peer *peer.Peer, ts time.Time, client, resolved net.IP, name string, resp dnsutil.CacheResponse) error
 }
 
@@ -95,7 +95,7 @@ func NewService(c *Cache, opt ...Option) *Service {
 }
 
 // Collect implements dnsutil.ResolvCollector.
-func (s *Service) Collect(ctx context.Context, client net.IP, name string, resolved []net.IP) error {
+func (s *Service) Collect(ctx context.Context, client net.IP, name string, resolved []net.IP, cnames []string) error {
 	if !s.started {
 		return dnsutil.ErrUnavailable
 	}
@@ -104,11 +104,19 @@ func (s *Service) Collect(ctx context.Context, client net.IP, name string, resol
 	if err != nil {
 		s.logger.Warnf("collecting '%v,%v,%v': %v", client, name, resolved)
 	}
+	if len(cnames) > 0 {
+		for _, cname := range cnames {
+			err = s.cache.Set(now, client, cname, resolved)
+			if err != nil {
+				s.logger.Warnf("collecting '%v,%v,%v': %v", client, cname, resolved)
+			}
+		}
+	}
 	if s.trace != nil {
 		peer, _ := peer.FromContext(ctx)
-		err := s.trace.LogCollect(peer, now, client, name, resolved)
+		err := s.trace.LogCollect(peer, now, client, name, resolved, cnames)
 		if err != nil {
-			s.logger.Warnf("writting to collect logger '%v,%v,%v': %v", client, name, resolved)
+			s.logger.Warnf("writting to collect logger '%v,%v,%v,%v': %v", client, name, resolved, cnames)
 		}
 	}
 	return err

@@ -140,11 +140,18 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 		data.ResponseFlags.AuthenticatedData = rrw.Msg.AuthenticatedData
 		if len(rrw.Msg.Answer) > 0 {
 			data.ResolvedIPs = make([]net.IP, 0, len(rrw.Msg.Answer))
+			data.ResolvedCNAMEs = make([]string, 0, len(rrw.Msg.Answer))
 			for _, a := range rrw.Msg.Answer {
 				if rsp, ok := a.(*dns.A); ok {
 					data.ResolvedIPs = append(data.ResolvedIPs, rsp.A)
 				} else if rsp, ok := a.(*dns.AAAA); ok {
 					data.ResolvedIPs = append(data.ResolvedIPs, rsp.AAAA)
+				} else if rsp, ok := a.(*dns.CNAME); ok {
+					target := rsp.Target
+					if dns.IsFqdn(target) {
+						target = strings.TrimSuffix(target, ".")
+					}
+					data.ResolvedCNAMEs = append(data.ResolvedCNAMEs, target)
 				}
 			}
 		}

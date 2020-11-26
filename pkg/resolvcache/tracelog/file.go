@@ -52,6 +52,7 @@ type logData struct {
 	client   net.IP
 	name     string
 	resolved []net.IP
+	cnames   []string
 	response dnsutil.CacheResponse
 }
 
@@ -68,7 +69,8 @@ func (data *logData) String() string {
 		for _, r := range data.resolved {
 			resolved = append(resolved, r.String())
 		}
-		return fmt.Sprintf("%s,collect,%s,%s,%s,%s\n", tstamp, peerinfo, client, data.name, strings.Join(resolved, ","))
+		return fmt.Sprintf("%s,collect,%s,%s,%s,%s,%s\n", tstamp, peerinfo, client, data.name,
+			strings.Join(resolved, ","), strings.Join(data.cnames, ","))
 	case opCheck:
 		resolved := ""
 		if len(data.resolved) > 0 {
@@ -89,7 +91,7 @@ func NewFile(fname string) (*File, error) {
 }
 
 // LogCollect implements resolvcache.TraceLogger.
-func (f *File) LogCollect(peer *peer.Peer, ts time.Time, client net.IP, name string, resolved []net.IP) error {
+func (f *File) LogCollect(peer *peer.Peer, ts time.Time, client net.IP, name string, resolved []net.IP, cnames []string) error {
 	if f.closed {
 		return errors.New("tracelog: log is closed")
 	}
@@ -100,6 +102,7 @@ func (f *File) LogCollect(peer *peer.Peer, ts time.Time, client net.IP, name str
 		client:   client,
 		name:     name,
 		resolved: resolved,
+		cnames:   cnames,
 	}
 	return nil
 }

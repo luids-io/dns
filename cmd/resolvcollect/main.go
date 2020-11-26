@@ -93,7 +93,7 @@ func main() {
 				logger.Fatalf("%v", err)
 			}
 			startc := time.Now()
-			err = client.Collect(context.Background(), record.client, record.name, record.resolved)
+			err = client.Collect(context.Background(), record.client, record.name, record.resolved, record.cnames)
 			if err != nil {
 				logger.Fatalf("collect '%s' returned error: %v", arg, err)
 			}
@@ -123,7 +123,7 @@ func main() {
 			logger.Fatalf("%v", err)
 		}
 		startc := time.Now()
-		err = client.Collect(context.Background(), record.client, record.name, record.resolved)
+		err = client.Collect(context.Background(), record.client, record.name, record.resolved, record.cnames)
 		if err != nil {
 			logger.Fatalf("collect '%s' returned error: %v", line, err)
 		}
@@ -138,6 +138,7 @@ type recordData struct {
 	client   net.IP
 	name     string
 	resolved []net.IP
+	cnames   []string
 }
 
 func getValue(arg string) (recordData, error) {
@@ -159,10 +160,12 @@ func getValue(arg string) (recordData, error) {
 	// get resolved ips
 	resolved := values[2:]
 	resolvedIP := make([]net.IP, 0, len(resolved))
+	resolvedCNAME := make([]string, 0, len(resolved))
 	for _, value := range resolved {
 		ip := net.ParseIP(value)
 		if ip == nil {
-			return data, fmt.Errorf("invalid ip '%v'", value)
+			resolvedCNAME = append(resolvedCNAME, value)
+			continue
 		}
 		resolvedIP = append(resolvedIP, ip)
 	}
@@ -170,6 +173,7 @@ func getValue(arg string) (recordData, error) {
 	data.client = clientIP
 	data.name = name
 	data.resolved = resolvedIP
+	data.cnames = resolvedCNAME
 	return data, nil
 }
 
