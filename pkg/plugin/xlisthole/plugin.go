@@ -214,8 +214,14 @@ func (p *Plugin) processResponse(ctx context.Context, req *request.Request, doma
 		e := event.New(code, rule.Event.Level)
 		e.Set("remote", req.IP())
 		e.Set("query", domain)
-		e.Set("listed", domain)
-		e.Set("reason", reason.Clean(resp.Reason))
+		e.Set("name", domain)
+		if resp.Result {
+			e.Set("reason", reason.Clean(resp.Reason))
+			score, _, _ := reason.ExtractScore(resp.Reason)
+			if score > 0 {
+				e.Set("score", score)
+			}
+		}
 		event.Notify(e)
 	}
 	return rule.Action, resp.TTL, nil

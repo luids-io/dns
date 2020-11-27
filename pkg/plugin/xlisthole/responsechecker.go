@@ -168,8 +168,14 @@ func (r *responseChecker) processResponses(responses []parallel.Response) (Actio
 			e := event.New(code, rule.Event.Level)
 			e.Set("remote", r.req.IP())
 			e.Set("query", domainFromRequest(r.req))
-			e.Set("listed", resp.Request.Name)
-			e.Set("reason", reason.Clean(resp.Response.Reason))
+			e.Set("name", resp.Request.Name)
+			if resp.Response.Result {
+				e.Set("reason", reason.Clean(resp.Response.Reason))
+				score, _, _ := reason.ExtractScore(resp.Response.Reason)
+				if score > 0 {
+					e.Set("score", score)
+				}
+			}
 			event.Notify(e)
 		}
 	}
