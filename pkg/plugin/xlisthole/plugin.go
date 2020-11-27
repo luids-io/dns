@@ -166,14 +166,24 @@ func (p *Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query 
 	return p.dispatchAction(ctx, &req, checker, action, ttl)
 }
 
-func (p *Plugin) newResponseChecker(ctx context.Context, req *request.Request, c xlist.Checker) *responseChecker {
-	return &responseChecker{
+func (p *Plugin) newResponseChecker(ctx context.Context, a ActionType, req *request.Request, c xlist.Checker) *responseChecker {
+	r := &responseChecker{
 		ResponseWriter: req.W,
 		ctx:            ctx,
 		req:            req,
 		fw:             p,
 		checker:        c,
 	}
+	switch a {
+	case CheckIP:
+		r.checkIPs = true
+	case CheckCNAME:
+		r.checkCNAMEs = true
+	case CheckAll:
+		r.checkIPs = true
+		r.checkCNAMEs = true
+	}
+	return r
 }
 
 func (p *Plugin) processResponse(ctx context.Context, req *request.Request, domain string, resp xlist.Response) (ActionInfo, int, error) {
@@ -216,8 +226,8 @@ func (p *Plugin) dispatchAction(ctx context.Context, req *request.Request, c xli
 	switch a.Type {
 	case ReturnValue:
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, req.W, req.Req)
-	case CheckIP:
-		respChecker := p.newResponseChecker(ctx, req, c)
+	case CheckIP, CheckCNAME, CheckAll:
+		respChecker := p.newResponseChecker(ctx, a.Type, req, c)
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, respChecker, req.Req)
 	case SendFixedIP4:
 		m := getMsgReplyIP(a.Data, ttl, req)

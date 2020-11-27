@@ -4,6 +4,7 @@ package xlisthole
 
 import (
 	"context"
+	"strings"
 
 	"github.com/coredns/coredns/plugin/metrics"
 	"github.com/coredns/coredns/request"
@@ -24,6 +25,9 @@ type responseChecker struct {
 	req     *request.Request
 	fw      *Plugin
 	checker xlist.Checker
+	// must check...
+	checkIPs    bool
+	checkCNAMEs bool
 }
 
 // WriteMsg implements dns.ResponseWriter interface. In this method, the returned IP
@@ -67,52 +71,95 @@ func (r *responseChecker) WriteMsg(q *dns.Msg) error {
 func (r *responseChecker) prepareQueries(answer []dns.RR) []parallel.Request {
 	queries := make([]parallel.Request, 0, len(answer))
 	for _, a := range answer {
-		//check ip4 returned
-		if rsp, ok := a.(*dns.A); ok {
-			queries = append(queries, parallel.Request{
-				Name:     rsp.A.String(),
-				Resource: xlist.IPv4,
-			})
+		if r.checkIPs {
+			//check ip4 returned
+			if rsp, ok := a.(*dns.A); ok {
+				queries = append(queries, parallel.Request{
+					Name:     rsp.A.String(),
+					Resource: xlist.IPv4,
+				})
+				continue
+			}
+			//check ip6 returned
+			if rsp, ok := a.(*dns.AAAA); ok {
+				queries = append(queries, parallel.Request{
+					Name:     rsp.AAAA.String(),
+					Resource: xlist.IPv6,
+				})
+				continue
+			}
 		}
-		//check ip6 returned
-		if rsp, ok := a.(*dns.AAAA); ok {
-			queries = append(queries, parallel.Request{
-				Name:     rsp.AAAA.String(),
-				Resource: xlist.IPv6,
-			})
+		if r.checkCNAMEs {
+			//check cname returned
+			if rsp, ok := a.(*dns.CNAME); ok {
+				target := rsp.Target
+				if dns.IsFqdn(target) {
+					target = strings.TrimSuffix(target, ".")
+				}
+				queries = append(queries, parallel.Request{
+					Name:     target,
+					Resource: xlist.Domain,
+				})
+			}
 		}
 	}
 	return queries
 }
 
 func (r *responseChecker) processResponses(responses []parallel.Response) (ActionInfo, int, error) {
-	// default rule
-	applyRule := r.fw.policy.IP.Unlisted
+	// apply rule defines final processing dns response
+	applyRule := r.fw.policy.CNAME.Unlisted
+	if r.checkIPs {
+		applyRule = r.fw.policy.IP.Unlisted
+	}
 	applyTTL := 0
 	// iterate results
 	for _, resp := range responses {
 		var code event.Code
 		var rule Rule
-		if resp.Response.Result {
-			//if it's on the list
-			rule = r.fw.policy.IP.Listed
-			if r.fw.policy.IP.Merge {
-				err := rule.Merge(resp.Response.Reason)
-				if err != nil {
-					return r.fw.policy.OnError, 0, err
+		if resp.Request.Resource == xlist.Domain {
+			if resp.Response.Result {
+				//if it's on the list
+				rule = r.fw.policy.CNAME.Listed
+				if r.fw.policy.CNAME.Merge {
+					err := rule.Merge(resp.Response.Reason)
+					if err != nil {
+						return r.fw.policy.OnError, 0, err
+					}
 				}
+				applyRule = rule
+				applyTTL = resp.Response.TTL
+				code = idsevent.DNSListedDomain
+				r.fw.metrics.listedDomains.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
+			} else {
+				//if it's not on the list
+				rule = r.fw.policy.CNAME.Unlisted
+				code = idsevent.DNSUnlistedDomain
+				r.fw.metrics.unlistedDomains.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
 			}
-			applyRule = rule
-			applyTTL = resp.Response.TTL
-			code = idsevent.DNSListedIP
-			r.fw.metrics.listedIPs.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
 		} else {
-			//if it's not on the list
-			rule = r.fw.policy.IP.Unlisted
-			code = idsevent.DNSUnlistedIP
-			r.fw.metrics.unlistedIPs.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
+			//it's an ipv4 or ipv6
+			if resp.Response.Result {
+				//if it's on the list
+				rule = r.fw.policy.IP.Listed
+				if r.fw.policy.IP.Merge {
+					err := rule.Merge(resp.Response.Reason)
+					if err != nil {
+						return r.fw.policy.OnError, 0, err
+					}
+				}
+				applyRule = rule
+				applyTTL = resp.Response.TTL
+				code = idsevent.DNSListedIP
+				r.fw.metrics.listedIPs.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
+			} else {
+				//if it's not on the list
+				rule = r.fw.policy.IP.Unlisted
+				code = idsevent.DNSUnlistedIP
+				r.fw.metrics.unlistedIPs.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
+			}
 		}
-		//now, apply policy for this IP check
+		//now, apply policy for this response check
 		if rule.Log {
 			r.fw.logger.Infof("%s check '%s' response: %v '%s'", r.req.RemoteAddr(),
 				resp.Request.Name, resp.Response.Result, reason.Clean(resp.Response.Reason))

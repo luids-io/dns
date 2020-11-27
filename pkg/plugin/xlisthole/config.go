@@ -37,6 +37,9 @@ func DefaultConfig() Config {
 			IP: Rules{
 				Listed:   Rule{Action: ActionInfo{Type: SendNXDomain}, Log: true},
 				Unlisted: Rule{Action: ActionInfo{Type: ReturnValue}}},
+			CNAME: Rules{
+				Listed:   Rule{Action: ActionInfo{Type: SendNXDomain}, Log: true},
+				Unlisted: Rule{Action: ActionInfo{Type: ReturnValue}}},
 			OnError: ActionInfo{Type: SendRefused},
 		},
 	}
@@ -225,6 +228,41 @@ var mapConfig = map[string]loadCfgFn{
 			return c.Errf("in unlisted-ip: %v", err)
 		}
 		cfg.Policy.IP.Unlisted = rule
+		return nil
+	},
+	"listed-cname": func(c *caddy.Controller, cfg *Config) error {
+		args := c.RemainingArgs()
+		if len(args) == 0 {
+			return c.ArgErr()
+		}
+		if args[0] == "merge" {
+			cfg.Policy.CNAME.Merge = true
+			args = args[1:]
+		}
+		if len(args) > 0 {
+			s := strings.Join(args, " ")
+			rule, err := ToRule(s)
+			if err != nil {
+				return c.Errf("in listed-cname: %v", err)
+			}
+			cfg.Policy.CNAME.Listed = rule
+		}
+		return nil
+	},
+	"unlisted-cname": func(c *caddy.Controller, cfg *Config) error {
+		args := c.RemainingArgs()
+		if len(args) == 0 {
+			return c.ArgErr()
+		}
+		if args[0] == "merge" {
+			return c.Err("in unlisted-cname: merge not available")
+		}
+		s := strings.Join(args, " ")
+		rule, err := ToRule(s)
+		if err != nil {
+			return c.Errf("in unlisted-cname: %v", err)
+		}
+		cfg.Policy.CNAME.Unlisted = rule
 		return nil
 	},
 	"on-error": func(c *caddy.Controller, cfg *Config) error {

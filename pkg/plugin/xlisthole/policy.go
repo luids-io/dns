@@ -15,6 +15,7 @@ import (
 type RuleSet struct {
 	Domain  Rules
 	IP      Rules
+	CNAME   Rules
 	OnError ActionInfo
 }
 
@@ -48,7 +49,29 @@ const (
 	SendRefused
 	ReturnValue
 	CheckIP
+	CheckCNAME
+	CheckAll
 )
+
+func (a ActionType) String() string {
+	switch a {
+	case SendNXDomain:
+		return "nxdomain"
+	case SendFixedIP4:
+		return "ip"
+	case SendRefused:
+		return "refused"
+	case ReturnValue:
+		return "return"
+	case CheckIP:
+		return "checkip"
+	case CheckCNAME:
+		return "checkcname"
+	case CheckAll:
+		return "check"
+	}
+	return "unknown"
+}
 
 // EventInfo stores event information in rules.
 type EventInfo struct {
@@ -70,18 +93,32 @@ func (r RuleSet) Validate() error {
 	if err != nil {
 		return fmt.Errorf("invalid listed-ip: %v", err)
 	}
-	if r.IP.Listed.Action.Type == CheckIP {
-		return errors.New("invalid listed-ip: checkip")
+	if r.IP.Listed.Action.Type > ReturnValue {
+		return fmt.Errorf("invalid listed-ip: %v", r.IP.Listed.Action.Type)
 	}
 	err = r.IP.Unlisted.Validate()
 	if err != nil {
 		return fmt.Errorf("invalid unlisted-ip: %v", err)
 	}
-	if r.IP.Unlisted.Action.Type == CheckIP {
-		return errors.New("invalid unlisted-ip: checkip")
+	if r.IP.Unlisted.Action.Type > ReturnValue {
+		return fmt.Errorf("invalid unlisted-ip: %v", r.IP.Unlisted.Action.Type)
 	}
-	if r.OnError.Type == CheckIP {
-		return errors.New("invalid on-error: checkip")
+	err = r.CNAME.Listed.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid listed-cname: %v", err)
+	}
+	if r.CNAME.Listed.Action.Type > ReturnValue {
+		return fmt.Errorf("invalid listed-cname: %v", r.CNAME.Listed.Action.Type)
+	}
+	err = r.CNAME.Unlisted.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid unlisted-cname: %v", err)
+	}
+	if r.CNAME.Unlisted.Action.Type > ReturnValue {
+		return fmt.Errorf("invalid unlisted-cname: %v", r.CNAME.Unlisted.Action.Type)
+	}
+	if r.OnError.Type > ReturnValue {
+		return fmt.Errorf("invalid on-error: %v", r.OnError.Type)
 	}
 	return nil
 }
@@ -193,6 +230,12 @@ func ToActionInfo(s string) (ActionInfo, error) {
 		return r, nil
 	case "checkip":
 		r.Type = CheckIP
+		return r, nil
+	case "checkcname":
+		r.Type = CheckCNAME
+		return r, nil
+	case "check":
+		r.Type = CheckAll
 		return r, nil
 	}
 	if strings.HasPrefix(strings.ToLower(s), "ip:") {
