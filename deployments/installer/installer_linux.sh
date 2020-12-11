@@ -468,7 +468,7 @@ Type=simple
 Restart=on-failure
 RestartSec=1
 User=$SVC_USER
-ExecStart=$BIN_DIR/resolvcache --config $ETC_DIR/$NAME/%i.toml
+ExecStart=$BIN_DIR/resolvcache --config $ETC_DIR/$NAME/resolvcache-%i.toml
 
 [Install]
 WantedBy=multi-user.target
