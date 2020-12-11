@@ -35,7 +35,7 @@ COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/resolvcache /bin/
-COPY --from=build-env /app/configs/docker/resolvcache/* /etc/luids/dns/
+COPY --from=build-env /app/configs/docker/dns/* /etc/luids/dns/
 COPY --from=build-env /var/lib/luids /var/lib/luids
 
 USER ludns

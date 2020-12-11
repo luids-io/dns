@@ -45,8 +45,8 @@ clean:
 
 docker:
 	@echo "$(WHALE) $@"
-	DOCKER_BUILDKIT=1 docker build -t ludns -f Dockerfile.ludns .
-	DOCKER_BUILDKIT=1 docker build -t resolvcache -f Dockerfile.resolvcache .
+	DOCKER_BUILDKIT=1 docker build --progress=plain -t ludns -f Dockerfile.ludns .
+	DOCKER_BUILDKIT=1 docker build --progress=plain -t resolvcache -f Dockerfile.resolvcache .
 
 ## Targets for Makefile.release
 .PHONY: release
