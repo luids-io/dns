@@ -395,6 +395,9 @@ file  = "${VAR_DIR}/${NAME}/cache-trace.log"
 file  = "${CACHE_DIR}/${NAME}/cache-dump.log"
 secs  = 60
 
+[log]
+format = "log"
+
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
