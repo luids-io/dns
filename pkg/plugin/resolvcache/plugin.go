@@ -136,14 +136,15 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 			return rc, err
 		}
 		// collect data
-		p.doCollect(client, name, resolved, cnames)
+		p.doCollect(ctx, client, name, resolved, cnames)
 	}
 	return rc, err
 }
 
-func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP, cnames []string) {
-	err := p.collector.Collect(context.Background(), client, name, resolved, cnames)
+func (p *Plugin) doCollect(ctx context.Context, client net.IP, name string, resolved []net.IP, cnames []string) {
+	err := p.collector.Collect(ctx, client, name, resolved, cnames)
 	if err != nil {
+		rid := idsapi.GetRequestID(ctx)
 		//apply policy management error
 		switch err {
 		case dnsutil.ErrLimitDNSClientQueries:
@@ -153,6 +154,7 @@ func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP, cnames
 			if p.policy.MaxClientRequests.Event.Raise {
 				level := p.policy.MaxClientRequests.Event.Level
 				e := event.New(idsevent.DNSMaxClientRequests, level)
+				e.Set("rid", rid.String())
 				e.Set("remote", client)
 				event.Notify(e)
 			}
@@ -163,6 +165,7 @@ func (p *Plugin) doCollect(client net.IP, name string, resolved []net.IP, cnames
 			if p.policy.MaxNamesResolved.Event.Raise {
 				level := p.policy.MaxNamesResolved.Event.Level
 				e := event.New(idsevent.DNSMaxNamesResolvedIP, level)
+				e.Set("rid", rid.String())
 				e.Set("remote", client)
 				e.Set("resolved", resolved)
 				event.Notify(e)
