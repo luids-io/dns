@@ -53,7 +53,7 @@ func (a *Archiver) Close() error {
 
 func (a *Archiver) doProcess() {
 	for data := range a.dataCh {
-		_, err := a.client.SaveResolv(context.Background(), data)
+		_, err := a.client.SaveResolv(context.Background(), *data)
 		if err != nil {
 			a.logger.Warnf("%v", err)
 		}

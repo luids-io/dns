@@ -17,6 +17,7 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/fall"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
+	"github.com/google/uuid"
 	"github.com/miekg/dns"
 
 	"github.com/luids-io/api/dnsutil"
@@ -101,8 +102,17 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 	if p.exclude.Contains(clientIP) {
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
 	}
+	// get request id
+	var err error
+	var rid uuid.UUID
+	rid, ctx, err = idsapi.RequestID(ctx)
+	if err != nil {
+		p.logger.Warnf("%v", err)
+		return dns.RcodeServerFailure, errors.New("can't get request id")
+	}
 	// fill data with query
 	data := &dnsutil.ResolvData{
+		ID:        rid,
 		Timestamp: time.Now(),
 		Server:    p.serverIP,
 		Client:    clientIP,
