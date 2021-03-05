@@ -212,6 +212,7 @@ func (p *Plugin) processResponse(ctx context.Context, req *request.Request, doma
 	}
 	if rule.Event.Raise {
 		e := event.New(code, rule.Event.Level)
+		e.Set("rid", idsapi.GetRequestID(ctx).String())
 		e.Set("remote", req.IP())
 		e.Set("query", domain)
 		e.Set("name", domain)

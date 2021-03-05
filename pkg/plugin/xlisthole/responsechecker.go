@@ -14,6 +14,7 @@ import (
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/api/xlist/parallel"
 	"github.com/luids-io/core/reason"
+	"github.com/luids-io/dns/pkg/plugin/idsapi"
 	"github.com/luids-io/dns/pkg/plugin/idsevent"
 )
 
@@ -57,7 +58,7 @@ func (r *responseChecker) WriteMsg(q *dns.Msg) error {
 		return r.dispatchAction(q, r.fw.policy.OnError, 0)
 	}
 	//check ok, process responses
-	action, ttl, err := r.processResponses(responses)
+	action, ttl, err := r.processResponses(r.ctx, responses)
 	if err != nil {
 		r.fw.metrics.errors.WithLabelValues(metrics.WithServer(r.ctx)).Inc()
 		r.fw.logger.Warnf("processing responses: %v", err.Error())
@@ -106,7 +107,7 @@ func (r *responseChecker) prepareQueries(answer []dns.RR) []parallel.Request {
 	return queries
 }
 
-func (r *responseChecker) processResponses(responses []parallel.Response) (ActionInfo, int, error) {
+func (r *responseChecker) processResponses(ctx context.Context, responses []parallel.Response) (ActionInfo, int, error) {
 	// apply rule defines final processing dns response
 	applyRule := r.fw.policy.CNAME.Unlisted
 	if r.checkIPs {
@@ -166,6 +167,7 @@ func (r *responseChecker) processResponses(responses []parallel.Response) (Actio
 		}
 		if rule.Event.Raise {
 			e := event.New(code, rule.Event.Level)
+			e.Set("rid", idsapi.GetRequestID(ctx).String())
 			e.Set("remote", r.req.IP())
 			e.Set("query", domainFromRequest(r.req))
 			e.Set("name", resp.Request.Name)
