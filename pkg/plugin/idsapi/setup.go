@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/caddyserver/caddy"
+	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
 
 	"github.com/luids-io/common/util"
@@ -36,6 +37,10 @@ func setup(c *caddy.Controller) error {
 	})
 	c.OnShutdown(func() error {
 		return p.Shutdown()
+	})
+	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
+		p.Next = next
+		return p
 	})
 	return nil
 }

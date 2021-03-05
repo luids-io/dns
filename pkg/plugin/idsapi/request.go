@@ -15,7 +15,7 @@ const (
 	keyRequestID ctxKey = 1312
 )
 
-// RequestID returns uuid from context. It's unsafe.
+// RequestID returns uuid from context, it creates if doesn't exist. It's unsafe.
 func RequestID(ctx context.Context) (uuid.UUID, context.Context, error) {
 	svalue := ctx.Value(keyRequestID)
 	if svalue == nil {
@@ -28,4 +28,19 @@ func RequestID(ctx context.Context) (uuid.UUID, context.Context, error) {
 	}
 	v, _ := svalue.(uuid.UUID)
 	return v, ctx, nil
+}
+
+// SetRequestID sets a new uuid in context.
+func SetRequestID(ctx context.Context, newuid uuid.UUID) context.Context {
+	return context.WithValue(ctx, keyRequestID, newuid)
+}
+
+// GetRequestID returns uuid from context.
+func GetRequestID(ctx context.Context) uuid.UUID {
+	svalue := ctx.Value(keyRequestID)
+	if svalue == nil {
+		return uuid.Nil
+	}
+	v, _ := svalue.(uuid.UUID)
+	return v
 }
