@@ -103,11 +103,9 @@ func (p Plugin) ServeDNS(ctx context.Context, writer dns.ResponseWriter, query *
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, writer, query)
 	}
 	// get request id
-	var err error
-	var rid uuid.UUID
-	rid, ctx, err = idsapi.RequestID(ctx)
-	if err != nil {
-		p.logger.Warnf("%v", err)
+	rid := idsapi.GetRequestID(ctx)
+	if rid == uuid.Nil {
+		p.logger.Errorf("can't get request id")
 		return dns.RcodeServerFailure, errors.New("can't get request id")
 	}
 	// fill data with query
